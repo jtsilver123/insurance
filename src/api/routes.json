@@ -1,0 +1,275 @@
+{
+  "api_version": "1.0",
+  "base_url": "/api/v1",
+  "authentication": "JWT Bearer Token",
+  "routes": {
+    "authentication": {
+      "POST /auth/login": {
+        "description": "User login",
+        "body": {
+          "email": "string",
+          "password": "string"
+        },
+        "response": {
+          "token": "string",
+          "user": "User object",
+          "expires_in": "number"
+        }
+      },
+      "POST /auth/register": {
+        "description": "User registration",
+        "body": {
+          "email": "string",
+          "password": "string",
+          "name": "string",
+          "role": "producer|smb",
+          "company": "string?"
+        }
+      },
+      "POST /auth/refresh": {
+        "description": "Refresh JWT token"
+      },
+      "POST /auth/logout": {
+        "description": "User logout"
+      }
+    },
+    "prospects": {
+      "GET /prospects": {
+        "description": "List prospects for producer",
+        "query_params": {
+          "status": "string?",
+          "page": "number?",
+          "limit": "number?",
+          "search": "string?"
+        },
+        "response": {
+          "prospects": "Prospect[]",
+          "total": "number",
+          "page": "number",
+          "limit": "number"
+        }
+      },
+      "POST /prospects": {
+        "description": "Create new prospect",
+        "body": {
+          "business_name": "string",
+          "contact_name": "string",
+          "contact_email": "string",
+          "contact_phone": "string?",
+          "naics_code": "string?",
+          "revenue": "number?"
+        }
+      },
+      "GET /prospects/:id": {
+        "description": "Get prospect details"
+      },
+      "PUT /prospects/:id": {
+        "description": "Update prospect"
+      },
+      "DELETE /prospects/:id": {
+        "description": "Delete prospect"
+      },
+      "POST /prospects/:id/generate-link": {
+        "description": "Generate portal link for prospect"
+      },
+    },
+    "documents": {
+      "GET /prospects/:id/documents": {
+        "description": "List documents for prospect"
+      },
+      "POST /prospects/:id/documents": {
+        "description": "Upload document",
+        "content_type": "multipart/form-data",
+        "body": {
+          "file": "File",
+          "type": "loa|policy|loss_run|financial|supplement|other",
+          "name": "string?"
+        }
+      },
+      "GET /documents/:id": {
+        "description": "Get document details"
+      },
+      "DELETE /documents/:id": {
+        "description": "Delete document"
+      },
+      "GET /documents/:id/download": {
+        "description": "Download document file"
+      },
+      "POST /documents/:id/process-ocr": {
+        "description": "Trigger OCR processing"
+      }
+    },
+    "forms": {
+      "GET /prospects/:id/form": {
+        "description": "Get form data for prospect"
+      },
+      "POST /prospects/:id/form": {
+        "description": "Save form data",
+        "body": {
+          "coverage_type": "string",
+          "form_data": "object",
+          "is_draft": "boolean?"
+        }
+      },
+      "PUT /prospects/:id/form": {
+        "description": "Update form data"
+      },
+      "POST /prospects/:id/form/submit": {
+        "description": "Submit completed form"
+      }
+    },
+    "carriers": {
+      "GET /carriers": {
+        "description": "List all carriers"
+      },
+      "GET /carriers/match": {
+        "description": "Get carrier recommendations",
+        "query_params": {
+          "naics_code": "string",
+          "revenue": "number",
+          "coverage_type": "string",
+          "state": "string"
+        }
+      },
+      "POST /carriers": {
+        "description": "Create carrier (admin only)"
+      }
+    },
+    "submissions": {
+      "GET /prospects/:id/submissions": {
+        "description": "List submissions for prospect"
+      },
+      "POST /prospects/:id/submissions": {
+        "description": "Create submission package",
+        "body": {
+          "carrier_ids": "string[]",
+          "include_acord": "boolean",
+          "custom_message": "string?"
+        }
+      },
+      "POST /submissions/:id/send": {
+        "description": "Send submission to carrier"
+      },
+      "GET /submissions/:id/status": {
+        "description": "Get submission status"
+      }
+    },
+    "quotes": {
+      "GET /prospects/:id/quotes": {
+        "description": "List quotes for prospect"
+      },
+      "POST /prospects/:id/quotes": {
+        "description": "Create quote (carrier portal integration)"
+      },
+      "PUT /quotes/:id": {
+        "description": "Update quote"
+      },
+      "POST /quotes/:id/recommend": {
+        "description": "Mark quote as recommended"
+      },
+      "POST /quotes/:id/bind": {
+        "description": "Bind quote",
+        "body": {
+          "effective_date": "string",
+          "payment_method": "string",
+          "additional_terms": "string?"
+        }
+      }
+    },
+    "activities": {
+      "GET /prospects/:id/activities": {
+        "description": "Get activity log for prospect"
+      },
+      "POST /prospects/:id/activities": {
+        "description": "Add activity entry",
+        "body": {
+          "type": "string",
+          "title": "string",
+          "description": "string?",
+          "metadata": "object?"
+        }
+      }
+    },
+    "communications": {
+      "POST /prospects/:id/send-email": {
+        "description": "Send email to prospect",
+        "body": {
+          "template": "string",
+          "subject": "string?",
+          "body": "string?",
+          "variables": "object?"
+        }
+      },
+      "POST /prospects/:id/send-sms": {
+        "description": "Send SMS to prospect",
+        "body": {
+          "message": "string"
+        }
+      },
+      "GET /prospects/:id/communications": {
+        "description": "Get communication history"
+      }
+    },
+    "analytics": {
+      "GET /analytics/dashboard": {
+        "description": "Get dashboard analytics"
+      },
+      "GET /analytics/prospects": {
+        "description": "Get prospect analytics",
+        "query_params": {
+          "date_from": "string?",
+          "date_to": "string?",
+          "group_by": "string?"
+        }
+      },
+      "GET /analytics/conversion": {
+        "description": "Get conversion funnel data"
+      }
+    },
+    "integrations": {
+      "POST /integrations/applied-epic/sync": {
+        "description": "Sync with Applied Epic"
+      },
+      "POST /integrations/webhook": {
+        "description": "Handle webhook callbacks"
+      },
+      "GET /integrations/status": {
+        "description": "Get integration status"
+      }
+    },
+    "portal": {
+      "GET /portal/:link": {
+        "description": "Access portal via link"
+      },
+      "POST /portal/:link/loa": {
+        "description": "Sign letter of authority"
+      },
+      "GET /portal/:link/status": {
+        "description": "Get portal status"
+      }
+    }
+  },
+  "middleware": [
+    "Authentication (JWT)",
+    "Rate Limiting",
+    "Request Validation",
+    "Error Handling",
+    "Logging",
+    "CORS"
+  ],
+  "error_responses": {
+    "400": "Bad Request - Invalid input",
+    "401": "Unauthorized - Invalid or missing token",
+    "403": "Forbidden - Insufficient permissions",
+    "404": "Not Found - Resource not found",
+    "409": "Conflict - Resource already exists",
+    "422": "Unprocessable Entity - Validation failed",
+    "429": "Too Many Requests - Rate limit exceeded",
+    "500": "Internal Server Error"
+  },
+  "success_responses": {
+    "200": "OK - Request successful",
+    "201": "Created - Resource created successfully",
+    "204": "No Content - Request successful, no response body"
+  }
+}

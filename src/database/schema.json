@@ -1,0 +1,195 @@
+{
+  "database": "commercial_insurance_platform",
+  "description": "Complete database schema for the commercial insurance submission platform",
+  "tables": {
+    "users": {
+      "description": "All platform users (producers and SMB clients)",
+      "columns": {
+        "id": "UUID PRIMARY KEY",
+        "email": "VARCHAR(255) UNIQUE NOT NULL",
+        "password_hash": "VARCHAR(255) NOT NULL",
+        "name": "VARCHAR(255) NOT NULL",
+        "role": "ENUM('producer', 'smb') NOT NULL",
+        "company": "VARCHAR(255)",
+        "phone": "VARCHAR(50)",
+        "avatar_url": "TEXT",
+        "is_active": "BOOLEAN DEFAULT true",
+        "created_at": "TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
+        "updated_at": "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
+      },
+      "indexes": ["email", "role", "created_at"]
+    },
+    "prospects": {
+      "description": "Insurance prospects/submissions",
+      "columns": {
+        "id": "UUID PRIMARY KEY",
+        "producer_id": "UUID NOT NULL REFERENCES users(id)",
+        "smb_id": "UUID REFERENCES users(id)",
+        "business_name": "VARCHAR(255) NOT NULL",
+        "contact_name": "VARCHAR(255) NOT NULL",
+        "contact_email": "VARCHAR(255) NOT NULL",
+        "contact_phone": "VARCHAR(50)",
+        "naics_code": "VARCHAR(10)",
+        "revenue": "DECIMAL(15,2)",
+        "employee_count": "INTEGER",
+        "status": "ENUM('docs', 'form', 'submitted', 'quotes', 'bound') DEFAULT 'docs'",
+        "portal_link": "VARCHAR(255) UNIQUE NOT NULL",
+        "renewal_date": "DATE",
+        "bind_date": "DATE",
+        "metadata": "JSON",
+        "created_at": "TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
+        "updated_at": "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
+      },
+      "indexes": ["producer_id", "smb_id", "status", "portal_link", "created_at"]
+    },
+    "documents": {
+      "description": "All uploaded documents and their extracted data",
+      "columns": {
+        "id": "UUID PRIMARY KEY",
+        "prospect_id": "UUID NOT NULL REFERENCES prospects(id) ON DELETE CASCADE",
+        "type": "ENUM('loa', 'policy', 'loss_run', 'financial', 'supplement', 'other') NOT NULL",
+        "name": "VARCHAR(255) NOT NULL",
+        "original_filename": "VARCHAR(255) NOT NULL",
+        "file_size": "INTEGER NOT NULL",
+        "mime_type": "VARCHAR(100) NOT NULL",
+        "storage_url": "TEXT NOT NULL",
+        "extracted_data": "JSON",
+        "ocr_status": "ENUM('pending', 'processing', 'completed', 'failed') DEFAULT 'pending'",
+        "ocr_confidence": "DECIMAL(5,2)",
+        "uploaded_by": "UUID NOT NULL REFERENCES users(id)",
+        "uploaded_at": "TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
+        "processed_at": "TIMESTAMP"
+      },
+      "indexes": ["prospect_id", "type", "ocr_status", "uploaded_at"]
+    },
+    "form_data": {
+      "description": "Smart form submissions and drafts",
+      "columns": {
+        "id": "UUID PRIMARY KEY",
+        "prospect_id": "UUID NOT NULL REFERENCES prospects(id) ON DELETE CASCADE",
+        "coverage_type": "VARCHAR(100) NOT NULL",
+        "form_data": "JSON NOT NULL",
+        "is_draft": "BOOLEAN DEFAULT true",
+        "version": "INTEGER DEFAULT 1",
+        "completed_at": "TIMESTAMP",
+        "created_at": "TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
+        "updated_at": "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
+      },
+      "indexes": ["prospect_id", "coverage_type", "is_draft", "created_at"]
+    },
+    "carriers": {
+      "description": "Insurance carriers and their appetite data",
+      "columns": {
+        "id": "UUID PRIMARY KEY",
+        "name": "VARCHAR(255) NOT NULL",
+        "code": "VARCHAR(50) UNIQUE NOT NULL",
+        "contact_email": "VARCHAR(255)",
+        "contact_name": "VARCHAR(255)",
+        "contact_phone": "VARCHAR(50)",
+        "appetite_data": "JSON",
+        "is_active": "BOOLEAN DEFAULT true",
+        "created_at": "TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
+        "updated_at": "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
+      },
+      "indexes": ["code", "name", "is_active"]
+    },
+    "quotes": {
+      "description": "Carrier quotes and recommendations",
+      "columns": {
+        "id": "UUID PRIMARY KEY",
+        "prospect_id": "UUID NOT NULL REFERENCES prospects(id) ON DELETE CASCADE",
+        "carrier_id": "UUID NOT NULL REFERENCES carriers(id)",
+        "quote_number": "VARCHAR(100)",
+        "premium": "DECIMAL(12,2) NOT NULL",
+        "deductible": "DECIMAL(12,2) NOT NULL",
+        "coverage_details": "JSON NOT NULL",
+        "terms": "TEXT",
+        "effective_date": "DATE",
+        "expiration_date": "DATE",
+        "is_recommended": "BOOLEAN DEFAULT false",
+        "ai_score": "DECIMAL(5,2)",
+        "ai_reasoning": "TEXT",
+        "status": "ENUM('pending', 'received', 'declined', 'bound') DEFAULT 'pending'",
+        "received_at": "TIMESTAMP",
+        "created_at": "TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
+        "updated_at": "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
+      },
+      "indexes": ["prospect_id", "carrier_id", "status", "is_recommended", "received_at"]
+    },
+    "submissions": {
+      "description": "Submission packages sent to carriers",
+      "columns": {
+        "id": "UUID PRIMARY KEY",
+        "prospect_id": "UUID NOT NULL REFERENCES prospects(id) ON DELETE CASCADE",
+        "carrier_id": "UUID NOT NULL REFERENCES carriers(id)",
+        "acord_forms": "JSON",
+        "supplemental_docs": "JSON",
+        "submission_email": "TEXT",
+        "sent_at": "TIMESTAMP",
+        "status": "ENUM('draft', 'sent', 'acknowledged', 'quoted', 'declined') DEFAULT 'draft'",
+        "tracking_data": "JSON",
+        "created_at": "TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
+        "updated_at": "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
+      },
+      "indexes": ["prospect_id", "carrier_id", "status", "sent_at"]
+    },
+    "activities": {
+      "description": "Activity log for all prospect interactions",
+      "columns": {
+        "id": "UUID PRIMARY KEY",
+        "prospect_id": "UUID NOT NULL REFERENCES prospects(id) ON DELETE CASCADE",
+        "user_id": "UUID REFERENCES users(id)",
+        "type": "ENUM('email', 'sms', 'call', 'document', 'form', 'quote', 'submission', 'note') NOT NULL",
+        "title": "VARCHAR(255) NOT NULL",
+        "description": "TEXT",
+        "metadata": "JSON",
+        "timestamp": "TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+      },
+      "indexes": ["prospect_id", "type", "timestamp"]
+    },
+    "email_templates": {
+      "description": "Email templates for various communications",
+      "columns": {
+        "id": "UUID PRIMARY KEY",
+        "name": "VARCHAR(255) NOT NULL",
+        "subject": "VARCHAR(255) NOT NULL",
+        "body": "TEXT NOT NULL",
+        "type": "ENUM('portal_link', 'reminder', 'quote_received', 'bind_order', 'renewal') NOT NULL",
+        "variables": "JSON",
+        "is_active": "BOOLEAN DEFAULT true",
+        "created_at": "TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
+        "updated_at": "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
+      },
+      "indexes": ["type", "is_active"]
+    },
+    "integrations": {
+      "description": "Third-party integrations and sync data",
+      "columns": {
+        "id": "UUID PRIMARY KEY",
+        "prospect_id": "UUID NOT NULL REFERENCES prospects(id) ON DELETE CASCADE",
+        "integration_type": "ENUM('applied_epic', 'carrier_portal', 'docusign', 'webhook') NOT NULL",
+        "external_id": "VARCHAR(255)",
+        "sync_status": "ENUM('pending', 'synced', 'failed') DEFAULT 'pending'",
+        "sync_data": "JSON",
+        "last_sync": "TIMESTAMP",
+        "created_at": "TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
+        "updated_at": "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
+      },
+      "indexes": ["prospect_id", "integration_type", "sync_status"]
+    }
+  },
+  "relationships": {
+    "users_prospects": "One-to-Many (producer_id, smb_id)",
+    "prospects_documents": "One-to-Many",
+    "prospects_form_data": "One-to-Many",
+    "prospects_quotes": "One-to-Many",
+    "prospects_submissions": "One-to-Many",
+    "prospects_activities": "One-to-Many",
+    "prospects_integrations": "One-to-Many",
+    "carriers_quotes": "One-to-Many",
+    "carriers_submissions": "One-to-Many"
+  },
+  "sample_data": {
+    "note": "This schema supports the complete commercial insurance submission workflow including document management, OCR processing, dynamic forms, carrier matching, quote comparison, and third-party integrations."
+  }
+}
