@@ -243,7 +243,7 @@ const AddCarrierModal: React.FC<AddCarrierModalProps> = ({ isOpen, onClose, onSa
             ))}
           </div>
         </div>
-        
+
         {/* Form Content */}
         <form onSubmit={handleSubmit}>
           <div className="p-6 overflow-y-auto max-h-[60vh]">
@@ -851,17 +851,8 @@ const AddCarrierModal: React.FC<AddCarrierModalProps> = ({ isOpen, onClose, onSa
           </div>
           
           {/* Footer */}
-          <div className="border-t border-gray-200 p-6 bg-gray-50 flex items-center justify-between">
-            {step > 1 ? (
-              <button
-                type="button"
-                onClick={prevStep}
-                className="flex items-center space-x-2 px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-100 transition-colors"
-              >
-                <ChevronLeft className="h-4 w-4" />
-                <span>Previous</span>
-              </button>
-            ) : (
+          <div className="border-t border-gray-200 p-6 bg-gray-50 flex items-center justify-between">            
+            <div>
               <button
                 type="button"
                 onClick={onClose}
@@ -870,36 +861,49 @@ const AddCarrierModal: React.FC<AddCarrierModalProps> = ({ isOpen, onClose, onSa
                 <X className="h-4 w-4" />
                 <span>Cancel</span>
               </button>
-            )}
+            </div>
             
-            {step < 5 ? (
-              <button
-                type="button"
-                onClick={nextStep}
-                className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-md"
-              >
-                <span>Continue</span>
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            ) : (
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="flex items-center space-x-2 bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-3 rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-300 shadow-md disabled:opacity-50"
-              >
-                {isSubmitting ? (
-                  <>
-                    <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
-                    <span>Saving...</span>
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-4 w-4" />
-                    <span>Save Carrier</span>
-                  </>
-                )}
-              </button>
-            )}
+            <div className="flex items-center space-x-3">
+              {step > 1 && (
+                <button
+                  type="button"
+                  onClick={prevStep}
+                  className="flex items-center space-x-2 px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-100 transition-colors"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  <span>Back</span>
+                </button>
+              )}
+              
+              {step < 5 ? (
+                <button
+                  type="button"
+                  onClick={nextStep}
+                  className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-md"
+                >
+                  <span>Continue</span>
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="flex items-center space-x-2 bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-3 rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-300 shadow-md disabled:opacity-50"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+                      <span>Saving...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4" />
+                      <span>Save Carrier</span>
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
           </div>
         </form>
       </div>
