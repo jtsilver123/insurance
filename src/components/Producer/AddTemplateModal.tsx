@@ -1,435 +1,692 @@
 import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
 import { 
-  ArrowLeft, 
-  TrendingUp, 
-  TrendingDown, 
-  Calendar, 
-  Building, 
-  User, 
-  Mail, 
-  Phone, 
-  DollarSign, 
-  FileText,
-  MessageSquare, 
-  Activity, 
-  Shield, 
-  CheckCircle, 
-  Clock, 
-  AlertTriangle,
-  Star, 
-  Eye, 
-  Download, 
-  Copy, 
-  ExternalLink, 
-  Settings, 
-  MoreVertical,
-  Edit, 
-  Archive, 
-  Trash2, 
-  RefreshCw, 
-  BarChart2,
-  PieChart, 
-  LineChart, 
-  Zap, 
-  Target, 
-  Award, 
-  Plus, 
-  X,
-  Send,
-  Users,
-  Upload
+  X, 
+  FileText, 
+  Upload, 
+  ChevronRight, 
+  ChevronLeft, 
+  Save,
+  CheckCircle,
+  Calendar,
+  Tag,
+  Layers,
+  Building,
+  List,
+  ToggleLeft,
+  ToggleRight,
+  AlertCircle
 } from 'lucide-react';
-import { mockRenewals } from '../../data/mockData';
-import { formatCurrency, formatDate } from '../../utils/formatters';
-import toast from 'react-hot-toast';
 
-const RenewalDetail: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('overview');
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [showAddCarrierModal, setShowAddCarrierModal] = useState(false);
-  const [showCustomRenewalModal, setShowCustomRenewalModal] = useState(false);
+interface AddTemplateModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (templateData: any) => void;
+}
 
-  // Get renewal data
-  const renewal = mockRenewals.find(r => r.id === id);
+const AddTemplateModal: React.FC<AddTemplateModalProps> = ({ isOpen, onClose, onSave }) => {
+  const [step, setStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    formNumber: '',
+    version: '',
+    versionDate: '',
+    category: 'acord',
+    lineOfBusiness: [] as string[],
+    industryTypes: [] as string[],
+    associatedCarriers: [] as string[],
+    purpose: '',
+    requiredFields: [] as string[],
+    autoPopulate: true,
+    presentationOrder: 1,
+    fileUrl: '',
+    fileSize: '',
+    isActive: true
+  });
+  const [file, setFile] = useState<File | null>(null);
 
-  if (!renewal) {
-    return (
-      <div className="p-6 text-center">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">Renewal Not Found</h1>
-        <p className="text-gray-600 mb-4">The renewal you're looking for doesn't exist.</p>
-        <button
-          onClick={() => navigate('/producer/renewals')}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          Back to Renewals
-        </button>
-      </div>
-    );
-  }
-
-  const tabs = [
-    { id: 'overview', label: 'Overview', icon: Activity },
-    { id: 'history', label: 'History', icon: Clock },
-    { id: 'options', label: 'Renewal Options', icon: Target },
-    { id: 'documents', label: 'Documents', icon: FileText },
-    { id: 'communication', label: 'Communication', icon: MessageSquare }
-  ];
-
-  const handleAddNewCarrier = () => {
-    setShowAddCarrierModal(true);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value, type } = e.target;
+    
+    if (type === 'checkbox') {
+      const checkbox = e.target as HTMLInputElement;
+      setFormData(prev => ({
+        ...prev,
+        [name]: checkbox.checked
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
-  const handleCustomRenewal = () => {
-    setShowCustomRenewalModal(true);
+  const handleArrayChange = (field: string, value: string) => {
+    const currentValues = [...formData[field as keyof typeof formData] as string[]];
+    const index = currentValues.indexOf(value);
+    
+    if (index === -1) {
+      currentValues.push(value);
+    } else {
+      currentValues.splice(index, 1);
+    }
+    
+    setFormData(prev => ({
+      ...prev,
+      [field]: currentValues
+    }));
   };
 
-  const handleSendRenewalRequest = () => {
-    toast.success('Renewal request sent to carrier');
-  };
-
-  const renderOverviewTab = () => (
-    <div className="space-y-6">
-      {/* Renewal Summary */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Renewal Summary</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div>
-            <p className="text-sm font-medium text-gray-600">Current Carrier</p>
-            <div className="flex items-center space-x-2 mt-1">
-              <Building className="h-4 w-4 text-gray-500" />
-              <p className="text-lg font-semibold text-gray-900">{renewal.currentCarrier}</p>
-            </div>
-          </div>
-          <div>
-            <p className="text-sm font-medium text-gray-600">Current Premium</p>
-            <div className="flex items-center space-x-2 mt-1">
-              <DollarSign className="h-4 w-4 text-gray-500" />
-              <p className="text-lg font-semibold text-gray-900">{formatCurrency(renewal.currentPremium)}</p>
-            </div>
-          </div>
-          <div>
-            <p className="text-sm font-medium text-gray-600">Estimated Renewal</p>
-            <div className="flex items-center space-x-2 mt-1">
-              <DollarSign className="h-4 w-4 text-gray-500" />
-              <p className="text-lg font-semibold text-gray-900">{formatCurrency(renewal.estimatedRenewalPremium)}</p>
-              <span className={`text-sm font-medium ${renewal.changePercentage > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                {renewal.changePercentage > 0 ? '+' : ''}{renewal.changePercentage}%
-              </span>
-            </div>
-          </div>
-          <div>
-            <p className="text-sm font-medium text-gray-600">Renewal Date</p>
-            <div className="flex items-center space-x-2 mt-1">
-              <Calendar className="h-4 w-4 text-gray-500" />
-              <p className="text-lg font-semibold text-gray-900">{formatDate(renewal.renewalDate)}</p>
-            </div>
-          </div>
-          <div>
-            <p className="text-sm font-medium text-gray-600">Days Remaining</p>
-            <div className="flex items-center space-x-2 mt-1">
-              <Clock className="h-4 w-4 text-gray-500" />
-              <p className={`text-lg font-semibold ${
-                renewal.daysRemaining < 0 ? 'text-red-600' :
-                renewal.daysRemaining < 15 ? 'text-yellow-600' :
-                'text-gray-900'
-              }`}>
-                {renewal.daysRemaining < 0 ? 'Expired' : `${renewal.daysRemaining} days`}
-              </p>
-            </div>
-          </div>
-          <div>
-            <p className="text-sm font-medium text-gray-600">Status</p>
-            <div className="flex items-center space-x-2 mt-1">
-              <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                renewal.status === 'bound' ? 'bg-green-100 text-green-800' :
-                renewal.status === 'quoted' ? 'bg-blue-100 text-blue-800' :
-                renewal.status === 'in_progress' ? 'bg-yellow-100 text-yellow-800' :
-                renewal.status === 'lost' ? 'bg-red-100 text-red-800' :
-                'bg-gray-100 text-gray-800'
-              }`}>
-                {renewal.status.replace('_', ' ').toUpperCase()}
-              </span>
-              <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                renewal.priority === 'urgent' ? 'bg-red-100 text-red-800' :
-                renewal.priority === 'high' ? 'bg-orange-100 text-orange-800' :
-                renewal.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                'bg-green-100 text-green-800'
-              }`}>
-                {renewal.priority.toUpperCase()} PRIORITY
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Coverage Information */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Coverage Information</h3>
-        <div className="space-y-4">
-          <div>
-            <p className="text-sm font-medium text-gray-600 mb-2">Coverage Types</p>
-            <div className="flex flex-wrap gap-2">
-              {renewal.coverageType.map((type, index) => (
-                <span key={index} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
-                  {type}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* AI Recommendations */}
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200 p-6">
-        <div className="flex items-start space-x-4">
-          <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl">
-            <Zap className="h-6 w-6 text-white" />
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold text-blue-900 mb-2">AI Recommendations</h3>
-            <p className="text-blue-800 mb-4">{renewal.recommendedAction}</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-white bg-opacity-50 rounded-lg p-4 border border-blue-200">
-                <p className="font-medium text-blue-900 mb-2">Recommended Contact Method</p>
-                <div className="flex items-center space-x-2">
-                  {renewal.recommendedContactMethod === 'email' && <Mail className="h-4 w-4 text-blue-600" />}
-                  {renewal.recommendedContactMethod === 'call' && <Phone className="h-4 w-4 text-blue-600" />}
-                  {renewal.recommendedContactMethod === 'meeting' && <UsersIcon className="h-4 w-4 text-blue-600" />}
-                  {renewal.recommendedContactMethod === 'video' && <Video className="h-4 w-4 text-blue-600" />}
-                  <span className="text-blue-800 capitalize">{renewal.recommendedContactMethod}</span>
-                </div>
-              </div>
-              <div className="bg-white bg-opacity-50 rounded-lg p-4 border border-blue-200">
-                <p className="font-medium text-blue-900 mb-2">Client Tenure</p>
-                <div className="flex items-center space-x-2">
-                  <UsersIcon className="h-4 w-4 text-blue-600" />
-                  <span className="text-blue-800">{renewal.clientTenure} {renewal.clientTenure === 1 ? 'year' : 'years'}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Client Information */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Client Information</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <p className="text-sm font-medium text-gray-600">Contact Name</p>
-            <div className="flex items-center space-x-2 mt-1">
-              <User className="h-4 w-4 text-gray-500" />
-              <p className="text-gray-900">{renewal.clientName}</p>
-            </div>
-          </div>
-          <div>
-            <p className="text-sm font-medium text-gray-600">Business Name</p>
-            <div className="flex items-center space-x-2 mt-1">
-              <Building className="h-4 w-4 text-gray-500" />
-              <p className="text-gray-900">{renewal.businessName}</p>
-            </div>
-          </div>
-          <div>
-            <p className="text-sm font-medium text-gray-600">Email</p>
-            <div className="flex items-center space-x-2 mt-1">
-              <Mail className="h-4 w-4 text-gray-500" />
-              <p className="text-gray-900">{renewal.contactEmail}</p>
-            </div>
-          </div>
-          <div>
-            <p className="text-sm font-medium text-gray-600">Phone</p>
-            <div className="flex items-center space-x-2 mt-1">
-              <Phone className="h-4 w-4 text-gray-500" />
-              <p className="text-gray-900">{renewal.contactPhone}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Notes */}
-      {renewal.notes && (
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Notes</h3>
-          <p className="text-gray-700">{renewal.notes}</p>
-        </div>
-      )}
-    </div>
-  );
-
-  const renderHistoryTab = () => (
-    <div className="space-y-6">
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Policy History</h3>
-        <div className="space-y-4">
-          {[
-            { year: '2023-2024', carrier: renewal.currentCarrier, premium: renewal.currentPremium, change: '+5%' },
-            { year: '2022-2023', carrier: renewal.currentCarrier, premium: renewal.currentPremium * 0.95, change: '+3%' },
-            { year: '2021-2022', carrier: renewal.currentCarrier, premium: renewal.currentPremium * 0.92, change: 'New Business' }
-          ].map((policy, index) => (
-            <div key={index} className="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Calendar className="h-4 w-4 text-blue-600" />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center justify-between">
-                  <p className="font-medium text-gray-900">{policy.year}</p>
-                  <p className="text-sm text-gray-600">{policy.change}</p>
-                </div>
-                <div className="flex items-center space-x-4 text-sm text-gray-600 mt-1">
-                  <span>{policy.carrier}</span>
-                  <span>•</span>
-                  <span>{formatCurrency(policy.premium)}</span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderOptionsTab = () => (
-    <div className="space-y-6">
-      {/* Current Carrier Renewal */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">Current Carrier Renewal</h3>
-          <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-            renewal.changePercentage > 10 ? 'bg-red-100 text-red-800' :
-            renewal.changePercentage > 5 ? 'bg-yellow-100 text-yellow-800' :
-            'bg-green-100 text-green-800'
-          }`}>
-            {renewal.changePercentage > 0 ? '+' : ''}{renewal.changePercentage}% Change
-          </span>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          <div>
-            <p className="text-sm font-medium text-gray-600">Current Carrier</p>
-            <div className="flex items-center space-x-2 mt-1">
-              <Building className="h-4 w-4 text-gray-500" />
-              <p className="text-lg font-semibold text-gray-900">{renewal.currentCarrier}</p>
-            </div>
-          </div>
-          <div>
-            <p className="text-sm font-medium text-gray-600">Current Premium</p>
-            <div className="flex items-center space-x-2 mt-1">
-              <DollarSign className="h-4 w-4 text-gray-500" />
-              <p className="text-lg font-semibold text-gray-900">{formatCurrency(renewal.currentPremium)}</p>
-            </div>
-          </div>
-          <div>
-            <p className="text-sm font-medium text-gray-600">Estimated Renewal</p>
-            <div className="flex items-center space-x-2 mt-1">
-              <DollarSign className="h-4 w-4 text-gray-500" />
-              <p className="text-lg font-semibold text-gray-900">{formatCurrency(renewal.estimatedRenewalPremium)}</p>
-            </div>
-          </div>
-          <div>
-            <p className="text-sm font-medium text-gray-600">Coverage Types</p>
-            <div className="flex flex-wrap gap-2 mt-1">
-              {renewal.coverageType.map((type, index) => (
-                <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
-                  {type}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-        
-        <div className="flex items-center space-x-4">
-          <button 
-            onClick={handleSendRenewalRequest}
-            className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <Send className="h-4 w-4" />
-            <span>Request Renewal Quote</span>
-          </button>
-          <button 
-            onClick={handleCustomRenewal}
-            className="flex items-center space-x-2 border border-blue-600 text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors"
-          >
-            <Edit className="h-4 w-4" />
-            <span>Request Pricing Options</span>
-          </button>
-        </div>
-      </div>
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const selectedFile = e.target.files[0];
+      setFile(selectedFile);
       
-      {/* Additional Options */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold text-gray-900">Additional Market Options</h3>
-          <button 
-            onClick={handleAddNewCarrier}
-            className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-md hover:shadow-lg font-medium"
-          >
-            <Plus className="h-4 w-4" />
-            <span>Add Carrier</span>
-          </button>
+      // Update form data with file info
+      setFormData(prev => ({
+        ...prev,
+        fileSize: formatFileSize(selectedFile.size)
+      }));
+    }
+  };
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    try {
+      // Simulate file upload and API call
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // In a real implementation, you would upload the file and get a URL back
+      const submissionData = {
+        ...formData,
+        fileUrl: file ? URL.createObjectURL(file) : '',
+        lastUpdated: new Date()
+      };
+      
+      onSave(submissionData);
+      onClose();
+    } catch (error) {
+      console.error('Error saving template:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const nextStep = () => {
+    setStep(prev => Math.min(prev + 1, 4));
+  };
+
+  const prevStep = () => {
+    setStep(prev => Math.max(prev - 1, 1));
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-purple-600 to-purple-700 p-6 text-white">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="p-3 bg-white bg-opacity-20 rounded-xl">
+                <FileText className="h-6 w-6" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold">Add Document Template</h2>
+                <p className="text-purple-100">Configure template details, field mapping, and carrier associations</p>
+              </div>
+            </div>
+            <button 
+              onClick={onClose}
+              className="p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-colors"
+            >
+              <X className="h-6 w-6" />
+            </button>
+          </div>
+          
+          {/* Progress Steps */}
+          <div className="flex items-center justify-between mt-8 px-4">
+            {[
+              { num: 1, title: "Template Info" },
+              { num: 2, title: "Associations" },
+              { num: 3, title: "File Upload" },
+              { num: 4, title: "Review" }
+            ].map((s, i) => (
+              <React.Fragment key={s.num}>
+                <div className="flex flex-col items-center">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                    step >= s.num ? 'bg-white text-purple-600' : 'bg-purple-400 text-white'
+                  }`}>
+                    {step > s.num ? (
+                      <CheckCircle className="h-6 w-6" />
+                    ) : (
+                      <span className="text-lg font-bold">{s.num}</span>
+                    )}
+                  </div>
+                  <span className="text-sm mt-2 text-purple-100">{s.title}</span>
+                </div>
+                {i < 3 && (
+                  <div className={`h-1 flex-1 mx-2 ${
+                    step > i + 1 ? 'bg-white' : 'bg-purple-400'
+                  }`} />
+                )}
+              </React.Fragment>
+            ))}
+          </div>
         </div>
         
-        <div className="text-center py-12 border-2 border-dashed border-gray-300 rounded-xl">
-          <Building className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-          <h4 className="text-lg font-medium text-gray-900 mb-2">No additional carriers added yet</h4>
-          <p className="text-gray-600 mb-6 max-w-md mx-auto">
-            Add carriers to shop this renewal and compare quotes from multiple markets
-          </p>
-          <button 
-            onClick={handleAddNewCarrier}
-            className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors mx-auto"
-          >
-            <Plus className="h-4 w-4" />
-            <span>Add Carrier</span>
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderDocumentsTab = () => (
-    <div className="space-y-6">
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">Policy Documents</h3>
-          <button className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-            <Upload className="h-4 w-4" />
-            <span>Upload Document</span>
-          </button>
-        </div>
-        <div className="space-y-4">
-          {[
-            { name: 'Current Policy.pdf', type: 'Policy', date: '2023-03-15', size: '2.4 MB' },
-            { name: 'Loss Runs (5 Year).pdf', type: 'Loss Run', date: '2023-12-10', size: '1.8 MB' },
-            { name: 'Schedule of Values.xlsx', type: 'Schedule', date: '2023-03-15', size: '1.2 MB' }
-          ].map((doc, index) => (
-            <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <FileText className="h-4 w-4 text-blue-600" />
+        {/* Form Content */}
+        <form onSubmit={handleSubmit}>
+          <div className="p-6 overflow-y-auto max-h-[60vh]">
+            {/* Step 1: Template Information */}
+            {step === 1 && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Template Name *
+                    </label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      required
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      placeholder="e.g., General Liability Application"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Form Number *
+                    </label>
+                    <input
+                      type="text"
+                      name="formNumber"
+                      value={formData.formNumber}
+                      onChange={handleChange}
+                      required
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      placeholder="e.g., ACORD 125"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Version
+                    </label>
+                    <input
+                      type="text"
+                      name="version"
+                      value={formData.version}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      placeholder="e.g., 2023/01"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Version Date
+                    </label>
+                    <div className="relative">
+                      <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <input
+                        type="date"
+                        name="versionDate"
+                        value={formData.versionDate}
+                        onChange={handleChange}
+                        className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      />
+                    </div>
+                  </div>
                 </div>
+                
                 <div>
-                  <p className="font-medium text-gray-900">{doc.name}</p>
-                  <div className="flex items-center space-x-2 text-sm text-gray-600">
-                    <span>{doc.type}</span>
-                    <span>•</span>
-                    <span>{doc.date}</span>
-                    <span>•</span>
-                    <span>{doc.size}</span>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Category *
+                  </label>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {[
+                      { value: 'acord', label: 'ACORD Form', icon: FileText },
+                      { value: 'supplemental', label: 'Supplemental', icon: Layers },
+                      { value: 'carrier_specific', label: 'Carrier Specific', icon: Building },
+                      { value: 'endorsement', label: 'Endorsement', icon: Tag }
+                    ].map(category => (
+                      <label 
+                        key={category.value}
+                        className={`flex items-center space-x-3 p-4 border-2 rounded-xl cursor-pointer transition-colors ${
+                          formData.category === category.value
+                            ? 'border-purple-500 bg-purple-50'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="category"
+                          value={category.value}
+                          checked={formData.category === category.value}
+                          onChange={handleChange}
+                          className="sr-only"
+                        />
+                        <category.icon className={`h-5 w-5 ${
+                          formData.category === category.value
+                            ? 'text-purple-600'
+                            : 'text-gray-400'
+                        }`} />
+                        <span className={`text-sm font-medium ${
+                          formData.category === category.value
+                            ? 'text-purple-700'
+                            : 'text-gray-700'
+                        }`}>
+                          {category.label}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Purpose
+                  </label>
+                  <textarea
+                    name="purpose"
+                    value={formData.purpose}
+                    onChange={handleChange}
+                    rows={3}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    placeholder="Describe the purpose of this document template..."
+                  />
+                </div>
+                
+                <div className="flex items-center space-x-3">
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      name="autoPopulate"
+                      checked={formData.autoPopulate}
+                      onChange={(e) => setFormData(prev => ({...prev, autoPopulate: e.target.checked}))}
+                      className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                    />
+                    <span className="text-sm font-medium text-gray-700">Enable Auto-Population</span>
+                  </label>
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      name="isActive"
+                      checked={formData.isActive}
+                      onChange={(e) => setFormData(prev => ({...prev, isActive: e.target.checked}))}
+                      className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                    />
+                    <span className="text-sm font-medium text-gray-700">Active Template</span>
+                  </label>
+                </div>
+              </div>
+            )}
+            
+            {/* Step 2: Associations */}
+            {step === 2 && (
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Line of Business
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      'General Liability', 'Professional Liability', 'Cyber Liability',
+                      'Commercial Property', 'Workers Compensation', 'Commercial Auto',
+                      'Directors & Officers', 'Employment Practices', 'Umbrella/Excess'
+                    ].map(line => (
+                      <label key={line} className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          checked={formData.lineOfBusiness.includes(line)}
+                          onChange={() => handleArrayChange('lineOfBusiness', line)}
+                          className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                        />
+                        <span className="text-sm text-gray-700">{line}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Industry Types
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      'Technology', 'Manufacturing', 'Construction', 'Retail',
+                      'Professional Services', 'Healthcare', 'Financial Services', 'Real Estate',
+                      'Hospitality', 'Education', 'Non-Profit', 'All Industries'
+                    ].map(industry => (
+                      <label key={industry} className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          checked={formData.industryTypes.includes(industry)}
+                          onChange={() => handleArrayChange('industryTypes', industry)}
+                          className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                        />
+                        <span className="text-sm text-gray-700">{industry}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Associated Carriers
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      'Liberty Mutual', 'Travelers', 'Chubb', 'Hartford', 'Nationwide',
+                      'CNA', 'Zurich', 'AIG', 'All Carriers'
+                    ].map(carrier => (
+                      <label key={carrier} className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          checked={formData.associatedCarriers.includes(carrier)}
+                          onChange={() => handleArrayChange('associatedCarriers', carrier)}
+                          className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                        />
+                        <span className="text-sm text-gray-700">{carrier}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Required Fields
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      'Business Name', 'NAICS Code', 'Revenue', 'Employee Count',
+                      'Business Address', 'Contact Information', 'Prior Coverage',
+                      'Loss History', 'Operations Description'
+                    ].map(field => (
+                      <label key={field} className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          checked={formData.requiredFields.includes(field)}
+                          onChange={() => handleArrayChange('requiredFields', field)}
+                          className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                        />
+                        <span className="text-sm text-gray-700">{field}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Presentation Order
+                  </label>
+                  <input
+                    type="number"
+                    name="presentationOrder"
+                    value={formData.presentationOrder}
+                    onChange={handleChange}
+                    min="1"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    placeholder="Order in which this form appears"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Lower numbers appear first in the form sequence
+                  </p>
+                </div>
+              </div>
+            )}
+            
+            {/* Step 3: File Upload */}
+            {step === 3 && (
+              <div className="space-y-6">
+                <div className="bg-purple-50 border border-purple-200 rounded-xl p-4">
+                  <div className="flex items-start space-x-3">
+                    <Upload className="h-5 w-5 text-purple-600 mt-0.5" />
+                    <div>
+                      <h4 className="font-medium text-purple-900">Upload Template File</h4>
+                      <p className="text-purple-800 text-sm mt-1">
+                        Upload the document template file. Supported formats: PDF, DOCX, XLSX.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center">
+                  {file ? (
+                    <div className="space-y-4">
+                      <div className="w-16 h-16 bg-purple-100 rounded-xl flex items-center justify-center mx-auto">
+                        <FileText className="h-8 w-8 text-purple-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">{file.name}</p>
+                        <p className="text-sm text-gray-600 mt-1">{formatFileSize(file.size)}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setFile(null)}
+                        className="text-purple-600 hover:text-purple-800 text-sm font-medium"
+                      >
+                        Replace file
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="w-16 h-16 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                        <Upload className="h-8 w-8 text-purple-600" />
+                      </div>
+                      <p className="text-lg font-medium text-gray-900 mb-2">
+                        Drag & drop file here
+                      </p>
+                      <p className="text-gray-600 mb-4">
+                        or click to browse your computer
+                      </p>
+                      <input
+                        type="file"
+                        id="template-file"
+                        onChange={handleFileChange}
+                        className="hidden"
+                        accept=".pdf,.docx,.xlsx"
+                      />
+                      <label
+                        htmlFor="template-file"
+                        className="inline-flex items-center space-x-2 bg-purple-600 text-white px-6 py-3 rounded-xl hover:bg-purple-700 transition-colors cursor-pointer"
+                      >
+                        <Upload className="h-4 w-4" />
+                        <span>Select File</span>
+                      </label>
+                      <p className="text-xs text-gray-500 mt-4">
+                        Maximum file size: 10MB
+                      </p>
+                    </>
+                  )}
+                </div>
+                
+                <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+                  <div className="flex items-start space-x-3">
+                    <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5" />
+                    <div>
+                      <h4 className="font-medium text-yellow-900">Important Note</h4>
+                      <p className="text-yellow-800 text-sm mt-1">
+                        For ACORD forms, ensure you're using the latest version. For carrier-specific forms, 
+                        verify you have permission to use and distribute these forms.
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
-              <div className="flex items-center space-x-2">
+            )}
+            
+            {/* Step 4: Review */}
+            {step === 4 && (
+              <div className="space-y-6">
+                <div className="bg-purple-50 border border-purple-200 rounded-xl p-4">
+                  <div className="flex items-start space-x-3">
+                    <CheckCircle className="h-5 w-5 text-purple-600 mt-0.5" />
+                    <div>
+                      <h4 className="font-medium text-purple-900">Ready to Add Template</h4>
+                      <p className="text-purple-800 text-sm mt-1">
+                        Please review the template information below before saving. You can go back to make changes if needed.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-white rounded-xl border border-gray-200 p-4">
+                    <h4 className="font-medium text-gray-900 mb-3">Template Information</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Template Name:</span>
+                        <span className="font-medium text-gray-900">{formData.name}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Form Number:</span>
+                        <span className="font-medium text-gray-900">{formData.formNumber}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Version:</span>
+                        <span className="font-medium text-gray-900">{formData.version || 'Not specified'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Category:</span>
+                        <span className="font-medium text-gray-900 capitalize">{formData.category.replace('_', ' ')}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Auto-Populate:</span>
+                        <span className="font-medium text-gray-900">{formData.autoPopulate ? 'Yes' : 'No'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Status:</span>
+                        <span className="font-medium text-gray-900">{formData.isActive ? 'Active' : 'Inactive'}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white rounded-xl border border-gray-200 p-4">
+                    <h4 className="font-medium text-gray-900 mb-3">Associations</h4>
+                    <div className="space-y-3 text-sm">
+                      <div>
+                        <span className="text-gray-600">Line of Business:</span>
+                        <div className="mt-1 flex flex-wrap gap-1">
+                          {formData.lineOfBusiness.length > 0 ? (
+                            formData.lineOfBusiness.map(line => (
+                              <span key={line} className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
+                                {line}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="text-gray-500">None selected</span>
+                          )}
+                        </div>
+                      </div>
+                      <div>
+                        <span className="text-gray-600">Industry Types:</span>
+                        <div className="mt-1 flex flex-wrap gap-1">
+                          {formData.industryTypes.length > 0 ? (
+                            formData.industryTypes.map(industry => (
+                              <span key={industry} className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">
+                                {industry}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="text-gray-500">None selected</span>
+                          )}
+                        </div>
+                      </div>
+                      <div>
+                        <span className="text-gray-600">Associated Carriers:</span>
+                        <div className="mt-1 flex flex-wrap gap-1">
+                          {formData.associatedCarriers.length > 0 ? (
+                            formData.associatedCarriers.map(carrier => (
+                              <span key={carrier} className="px-2 py-1 bg-purple-100 text-purple-800 rounded text-xs">
+                                {carrier}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="text-gray-500">None selected</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-white rounded-xl border border-gray-200 p-4">
+                    <h4 className="font-medium text-gray-900 mb-3">Required Fields</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex flex-wrap gap-1">
+                        {formData.requiredFields.length > 0 ? (
+                          formData.requiredFields.map(field => (
+                            <span key={field} className="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs">
+                              {field}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-gray-500">No required fields specified</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white rounded-xl border border-gray-200 p-4">
+                    <h4 className="font-medium text-gray-900 mb-3">File Information</h4>
+                    <div className="space-y-2 text-sm">
+                      {file ? (
+                        <>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">File Name:</span>
+                            <span className="font-medium text-gray-900">{file.name}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">File Size:</span>
+                            <span className="font-medium text-gray-900">{formatFileSize(file.size)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">File Type:</span>
+                            <span className="font-medium text-gray-900">{file.type}</span>
+                          </div>
+                        </>
+                      ) : (
+                        <p className="text-yellow-600">No file uploaded</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                
+                {formData.purpose && (
+                  <div className="bg-white rounded-xl border border-gray-200 p-4">
+                    <h4 className="font-medium text-gray-900 mb-3">Purpose</h4>
+                    <p className="text-sm text-gray-700">{formData.purpose}</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+          
+          {/* Footer */}
+          <div className="border-t border-gray-200 p-6 bg-gray-50 flex items-center justify-between">
             {step > 1 ? (
               <button
                 type="button"
                 onClick={prevStep}
                 className="flex items-center space-x-2 px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-100 transition-colors"
               >
-                <span>Next</span>
-                <span>Back</span>
+                <ChevronLeft className="h-4 w-4" />
+                <span>Previous</span>
               </button>
             ) : (
               <button
@@ -441,456 +698,40 @@ const RenewalDetail: React.FC = () => {
                 <span>Cancel</span>
               </button>
             )}
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+            
+            {step < 4 ? (
+              <button
+                type="button"
+                onClick={nextStep}
+                className="flex items-center space-x-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white px-6 py-3 rounded-xl hover:from-purple-700 hover:to-purple-800 transition-all duration-300 shadow-md"
+              >
+                <span>Continue</span>
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            ) : (
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="flex items-center space-x-2 bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-3 rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-300 shadow-md disabled:opacity-50"
+              >
+                {isSubmitting ? (
+                  <>
+                    <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+                    <span>Saving...</span>
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4" />
+                    <span>Save Template</span>
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+        </form>
       </div>
-    </div>
-  );
-
-  const renderCommunicationTab = () => (
-    <div className="space-y-6">
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">Communication History</h3>
-          <div className="flex items-center space-x-2">
-            <button className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-              <Mail className="h-4 w-4" />
-              <span>Send Email</span>
-            </button>
-            <button className="flex items-center space-x-2 border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors">
-              <Phone className="h-4 w-4" />
-              <span>Log Call</span>
-            </button>
-          </div>
-        </div>
-        <div className="space-y-4">
-          {[
-            { type: 'email', direction: 'outbound', subject: 'Upcoming Renewal', date: '2024-01-15', status: 'opened' },
-            { type: 'call', direction: 'outbound', subject: 'Renewal Discussion', date: '2024-01-10', status: 'completed' }
-          ].map((comm, index) => (
-            <div key={index} className="flex items-start space-x-3 p-4 bg-gray-50 rounded-lg">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                {comm.type === 'email' ? <Mail className="h-4 w-4 text-blue-600" /> : <Phone className="h-4 w-4 text-blue-600" />}
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center justify-between">
-                  <p className="font-medium text-gray-900">{comm.subject}</p>
-                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                    comm.status === 'opened' ? 'bg-green-100 text-green-800' :
-                    comm.status === 'sent' ? 'bg-blue-100 text-blue-800' :
-                    'bg-gray-100 text-gray-800'
-                  }`}>
-                    {comm.status.toUpperCase()}
-                  </span>
-                </div>
-                <div className="flex items-center space-x-2 text-sm text-gray-600 mt-1">
-                  <span className="capitalize">{comm.direction}</span>
-                  <span>•</span>
-                  <span>{comm.date}</span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case 'overview':
-        return renderOverviewTab();
-      case 'history':
-        return renderHistoryTab();
-      case 'options':
-        return renderOptionsTab();
-      case 'documents':
-        return renderDocumentsTab();
-      case 'communication':
-        return renderCommunicationTab();
-      default:
-        return <div>Content not found</div>;
-    }
-  };
-
-  // Mock function for Video icon since it's not imported
-  const Video = (props: any) => (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      {...props}
-    >
-      <path d="M22 8.5V15.5C22 16.3 21.3 17 20.5 17H3.5C2.7 17 2 16.3 2 15.5V8.5C2 7.7 2.7 7 3.5 7H20.5C21.3 7 22 7.7 22 8.5Z" />
-      <path d="M18 12L13 9V15L18 12Z" />
-    </svg>
-  );
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
-      <div className="p-6 max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={() => navigate('/producer/renewals')}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <ArrowLeft className="h-5 w-5 text-gray-600" />
-            </button>
-            <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                {renewal.businessName}
-              </h1>
-              <p className="text-gray-600 mt-1">Renewal Management</p>
-            </div>
-          </div>
-          
-          <div className="flex items-center space-x-3">
-            <div className="relative">
-              <button
-                onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
-              >
-                <MoreVertical className="h-5 w-5" />
-              </button>
-              
-              {dropdownOpen && (
-                <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl border border-gray-100 shadow-xl z-50">
-                  <div className="py-1">
-                    <button className="w-full flex items-center space-x-3 px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50">
-                      <Edit className="h-4 w-4" />
-                      <span>Edit Renewal</span>
-                    </button>
-                    <button className="w-full flex items-center space-x-3 px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50">
-                      <Archive className="h-4 w-4" />
-                      <span>Archive</span>
-                    </button>
-                    <button className="w-full flex items-center space-x-3 px-4 py-3 text-left text-sm text-red-600 hover:bg-red-50">
-                      <Trash2 className="h-4 w-4" />
-                      <span>Delete</span>
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Status Banner */}
-        <div className={`mb-6 p-4 rounded-xl ${
-          renewal.status === 'bound' ? 'bg-green-50 border border-green-200' :
-          renewal.status === 'quoted' ? 'bg-blue-50 border border-blue-200' :
-          renewal.status === 'in_progress' ? 'bg-yellow-50 border border-yellow-200' :
-          renewal.status === 'lost' ? 'bg-red-50 border border-red-200' :
-          'bg-gray-50 border border-gray-200'
-        }`}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              {renewal.status === 'bound' && <CheckCircle className="h-5 w-5 text-green-600" />}
-              {renewal.status === 'quoted' && <FileText className="h-5 w-5 text-blue-600" />}
-              {renewal.status === 'in_progress' && <Clock className="h-5 w-5 text-yellow-600" />}
-              {renewal.status === 'lost' && <AlertTriangle className="h-5 w-5 text-red-600" />}
-              {renewal.status === 'pending' && <Clock className="h-5 w-5 text-gray-600" />}
-              <div>
-                <p className={`font-medium ${
-                  renewal.status === 'bound' ? 'text-green-900' :
-                  renewal.status === 'quoted' ? 'text-blue-900' :
-                  renewal.status === 'in_progress' ? 'text-yellow-900' :
-                  renewal.status === 'lost' ? 'text-red-900' :
-                  'text-gray-900'
-                }`}>
-                  {renewal.status === 'bound' ? 'Renewal Bound' :
-                   renewal.status === 'quoted' ? 'Quotes Received' :
-                   renewal.status === 'in_progress' ? 'Renewal In Progress' :
-                   renewal.status === 'lost' ? 'Renewal Lost' :
-                   'Renewal Pending'}
-                </p>
-                <p className={`text-sm ${
-                  renewal.status === 'bound' ? 'text-green-800' :
-                  renewal.status === 'quoted' ? 'text-blue-800' :
-                  renewal.status === 'in_progress' ? 'text-yellow-800' :
-                  renewal.status === 'lost' ? 'text-red-800' :
-                  'text-gray-800'
-                }`}>
-                  {renewal.status === 'bound' ? 'Policy has been renewed and bound.' :
-                   renewal.status === 'quoted' ? 'Quotes have been received and are ready for review.' :
-                   renewal.status === 'in_progress' ? 'Renewal is being processed with carriers.' :
-                   renewal.status === 'lost' ? 'Client did not renew with us.' :
-                   `Renewal is due in ${renewal.daysRemaining} days.`}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="text-right">
-                <p className="text-sm font-medium text-gray-600">Renewal Date</p>
-                <p className="text-lg font-semibold text-gray-900">{formatDate(renewal.renewalDate)}</p>
-              </div>
-              <div className={`p-3 rounded-xl ${
-                renewal.daysRemaining < 0 ? 'bg-red-100' :
-                renewal.daysRemaining < 15 ? 'bg-yellow-100' :
-                renewal.daysRemaining < 30 ? 'bg-blue-100' :
-                'bg-green-100'
-              }`}>
-                <Calendar className={`h-6 w-6 ${
-                  renewal.daysRemaining < 0 ? 'text-red-600' :
-                  renewal.daysRemaining < 15 ? 'text-yellow-600' :
-                  renewal.daysRemaining < 30 ? 'text-blue-600' :
-                  'text-green-600'
-                }`} />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Tabs */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
-          <div className="border-b border-gray-200">
-            <nav className="flex space-x-8 px-6">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                    activeTab === tab.id
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  <tab.icon className="h-4 w-4" />
-                  <span>{tab.label}</span>
-                </button>
-              ))}
-            </nav>
-          </div>
-
-          {/* Tab Content */}
-          <div className="p-6">
-            {renderTabContent()}
-          </div>
-        </div>
-      </div>
-
-      {/* Add Carrier Modal */}
-      {showAddCarrierModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden shadow-2xl">
-            <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-blue-100">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="p-3 bg-blue-600 rounded-xl">
-                    <Building className="h-6 w-6 text-white" />
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-bold text-blue-900">Add Market Option</h2>
-                    <p className="text-blue-800">Add a carrier to shop this renewal</p>
-                  </div>
-                </div>
-                <button 
-                  onClick={() => setShowAddCarrierModal(false)}
-                  className="p-2 hover:bg-white hover:bg-opacity-50 rounded-lg transition-colors"
-                >
-                  <X className="h-5 w-5 text-blue-600" />
-                </button>
-              </div>
-            </div>
-            
-            <div className="p-6 overflow-y-auto max-h-[70vh]">
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Carrier Name *
-                    </label>
-                    <select
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                      <option value="">Select a carrier</option>
-                      <option value="travelers">Travelers</option>
-                      <option value="chubb">Chubb</option>
-                      <option value="hartford">The Hartford</option>
-                      <option value="cna">CNA</option>
-                      <option value="nationwide">Nationwide</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Underwriter Email *
-                    </label>
-                    <input
-                      type="email"
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="underwriter@carrier.com"
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Submission Notes
-                    </label>
-                    <textarea
-                      rows={3}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Any specific notes for this carrier submission..."
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="border-t border-gray-200 p-6 bg-gray-50 flex items-center justify-between">
-              <button
-                onClick={() => setShowAddCarrierModal(false)}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 font-semibold"
-              >
-                <Plus className="h-4 w-4" />
-                <span>Add Carrier</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Custom Renewal Modal */}
-      {showCustomRenewalModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden shadow-2xl">
-            <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-blue-100">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="p-3 bg-blue-600 rounded-xl">
-                    <Edit className="h-6 w-6 text-white" />
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-bold text-blue-900">Request Pricing Options</h2>
-                    <p className="text-blue-800">Request different pricing scenarios from {renewal.currentCarrier}</p>
-                  </div>
-                </div>
-                <button 
-                  onClick={() => setShowCustomRenewalModal(false)}
-                  className="p-2 hover:bg-white hover:bg-opacity-50 rounded-lg transition-colors"
-                >
-                  <X className="h-5 w-5 text-blue-600" />
-                </button>
-              </div>
-            </div>
-            
-            <div className="p-6 overflow-y-auto max-h-[70vh]">
-              <div className="space-y-6">
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                  <div className="flex items-start space-x-3">
-                    <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5" />
-                    <div>
-                      <h4 className="font-medium text-yellow-900">Request Multiple Options</h4>
-                      <p className="text-yellow-800 text-sm mt-1">
-                        You can request different coverage options or deductible scenarios to help your client make an informed decision.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Option 1: Current Coverage (Base Option)
-                  </label>
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-700">Current coverage with estimated {renewal.changePercentage}% increase</p>
-                    <p className="font-medium text-gray-900 mt-1">{formatCurrency(renewal.estimatedRenewalPremium)}</p>
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Option 2: Higher Deductible
-                  </label>
-                  <div className="p-4 border border-gray-200 rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="text-sm text-gray-700">Increase deductible to:</p>
-                      <select className="border border-gray-200 rounded-lg px-3 py-2 text-sm">
-                        <option value="5000">$5,000</option>
-                        <option value="10000">$10,000</option>
-                        <option value="25000">$25,000</option>
-                      </select>
-                    </div>
-                    <p className="text-xs text-gray-600">This option may reduce premium by approximately 5-15%</p>
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Option 3: Coverage Adjustments
-                  </label>
-                  <div className="p-4 border border-gray-200 rounded-lg">
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm text-gray-700">Adjust liability limits:</p>
-                        <select className="border border-gray-200 rounded-lg px-3 py-2 text-sm">
-                          <option value="1m">$1M/$2M</option>
-                          <option value="2m">$2M/$4M</option>
-                          <option value="3m">$3M/$6M</option>
-                        </select>
-                      </div>
-                      <div className="flex items-center">
-                        <input type="checkbox" className="mr-2" />
-                        <span className="text-sm text-gray-700">Include additional cyber coverage</span>
-                      </div>
-                      <div className="flex items-center">
-                        <input type="checkbox" className="mr-2" />
-                        <span className="text-sm text-gray-700">Remove terrorism coverage</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Additional Notes
-                  </label>
-                  <textarea
-                    rows={3}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Any specific requests or notes for the underwriter..."
-                  />
-                </div>
-              </div>
-            </div>
-            
-            <div className="border-t border-gray-200 p-6 bg-gray-50 flex items-center justify-between">
-              <button
-                onClick={() => setShowCustomRenewalModal(false)}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  setShowCustomRenewalModal(false);
-                  toast.success('Pricing options request sent to carrier');
-                }}
-                className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 font-semibold"
-              >
-                <Send className="h-4 w-4" />
-                <span>Send Request</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
 
-export default RenewalDetail;
+export default AddTemplateModal;
