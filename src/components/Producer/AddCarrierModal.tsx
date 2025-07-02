@@ -615,6 +615,59 @@ const AddCarrierModal: React.FC<AddCarrierModalProps> = ({ isOpen, onClose, onSa
                   </div>
                 </div>
                 
+                <div className="mt-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Commission Payment Schedule
+                  </label>
+                  <div className="grid grid-cols-1 gap-4">
+                    <div className="flex items-center justify-between p-4 border border-gray-200 rounded-xl">
+                      <div className="flex items-center space-x-3">
+                        <input
+                          type="radio"
+                          name="paymentSchedule"
+                          value="upfront"
+                          defaultChecked
+                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <div>
+                          <span className="text-sm font-medium text-gray-700">Upfront Payment</span>
+                          <p className="text-xs text-gray-500">Full commission paid when policy is bound</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between p-4 border border-gray-200 rounded-xl">
+                      <div className="flex items-center space-x-3">
+                        <input
+                          type="radio"
+                          name="paymentSchedule"
+                          value="monthly"
+                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <div>
+                          <span className="text-sm font-medium text-gray-700">Monthly Installments</span>
+                          <p className="text-xs text-gray-500">Commission paid monthly over the policy term</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between p-4 border border-gray-200 rounded-xl">
+                      <div className="flex items-center space-x-3">
+                        <input
+                          type="radio"
+                          name="paymentSchedule"
+                          value="as_earned"
+                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <div>
+                          <span className="text-sm font-medium text-gray-700">As Earned</span>
+                          <p className="text-xs text-gray-500">Commission paid as premium is collected from client</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Submission Requirements
