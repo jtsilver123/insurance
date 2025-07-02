@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Filter, Search, MoreVertical, FileText, X, User, Building, Baseline as Timeline, Globe, UserCheck, Sparkles, StarOff, Upload, Eye, Download, Mail, Phone, MessageSquare, ExternalLink } from 'lucide-react';
+import { Filter, Search, MoreVertical, FileText, X, User, Building, Baseline as Timeline, Globe, UserCheck, Sparkles, Star, Upload, Eye, Download, Mail, Phone, MessageSquare, ExternalLink } from 'lucide-react';
 import { mockProspects } from '../../data/mockData';
 import ProspectProgressBar from '../Common/ProspectProgressBar';
 import { format } from 'date-fns';
@@ -603,7 +603,7 @@ const ProspectList: React.FC = () => {
                   
                   <div className="flex items-center space-x-1">
                     <button className="p-2 text-gray-400 hover:text-yellow-500 rounded-lg hover:bg-yellow-50 transition-colors">
-                      <StarOff className="h-4 w-4" />
+                      <Star className="h-4 w-4" />
                     </button>
                     
                     {/* Client Details Dropdown */}
