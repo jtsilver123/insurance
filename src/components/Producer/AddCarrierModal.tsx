@@ -1,856 +1,536 @@
 import React, { useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { 
-  X, Building, Mail, Phone, Globe, DollarSign, Target, Shield, FileText,
-  ChevronRight, ChevronLeft, Save, CheckCircle, User, Users, Percent
+  ArrowLeft, 
+  TrendingUp, 
+  TrendingDown, 
+  Calendar, 
+  Building, 
+  User, 
+  Mail, 
+  Phone, 
+  DollarSign, 
+  FileText,
+  MessageSquare, 
+  Activity, 
+  Shield, 
+  CheckCircle, 
+  Clock, 
+  AlertTriangle,
+  Star, 
+  Eye, 
+  Download, 
+  Copy, 
+  ExternalLink, 
+  Settings, 
+  MoreVertical,
+  Edit, 
+  Archive, 
+  Trash2, 
+  RefreshCw, 
+  BarChart2,
+  PieChart, 
+  LineChart, 
+  Zap, 
+  Target, 
+  Award, 
+  Plus, 
+  X,
+  Send,
+  Users,
+  Upload
 } from 'lucide-react';
+import { mockRenewals } from '../../data/mockData';
+import { formatCurrency, formatDate } from '../../utils/formatters';
+import toast from 'react-hot-toast';
 
-interface AddCarrierModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSave: (carrierData: any) => void;
-}
+const RenewalDetail: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('overview');
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [showAddCarrierModal, setShowAddCarrierModal] = useState(false);
+  const [showCustomRenewalModal, setShowCustomRenewalModal] = useState(false);
 
-const AddCarrierModal: React.FC<AddCarrierModalProps> = ({ isOpen, onClose, onSave }) => {
-  const [step, setStep] = useState(1);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState({
-    name: '',
-    code: '',
-    status: 'active',
-    rating: 'A',
-    manager: {
-      name: '',
-      email: '',
-      phone: ''
-    },
-    underwriter: {
-      name: '',
-      email: '',
-      phone: ''
-    },
-    appetite: {
-      maxPolicyLimit: 10000000,
-      preferredIndustries: [] as string[],
-      premiumRange: {
-        min: 5000,
-        max: 500000
-      },
-      geographicRestrictions: [] as string[],
-      riskTolerance: 'moderate',
-      specialConsiderations: [] as string[]
-    },
-    coverageLines: [] as string[],
-    commissionRates: {} as Record<string, number>,
-    submissionRequirements: [] as string[],
-    preferredSubmissionMethod: 'email',
-    notes: ''
-  });
+  // Get renewal data
+  const renewal = mockRenewals.find(r => r.id === id);
 
-  const coverageOptions = [
-    'General Liability',
-    'Professional Liability', 
-    'Cyber Liability',
-    'Commercial Property',
-    'Workers Compensation',
-    'Commercial Auto',
-    'Directors & Officers',
-    'Employment Practices',
-    'Umbrella/Excess'
+  if (!renewal) {
+    return (
+      <div className="p-6 text-center">
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">Renewal Not Found</h1>
+        <p className="text-gray-600 mb-4">The renewal you're looking for doesn't exist.</p>
+        <button
+          onClick={() => navigate('/producer/renewals')}
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          Back to Renewals
+        </button>
+      </div>
+    );
+  }
+
+  const tabs = [
+    { id: 'overview', label: 'Overview', icon: Activity },
+    { id: 'history', label: 'History', icon: Clock },
+    { id: 'options', label: 'Renewal Options', icon: Target },
+    { id: 'documents', label: 'Documents', icon: FileText },
+    { id: 'communication', label: 'Communication', icon: MessageSquare }
   ];
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    
-    if (name.includes('.')) {
-      const [parent, child] = name.split('.');
-      setFormData(prev => ({
-        ...prev,
-        [parent]: {
-          ...prev[parent as keyof typeof prev],
-          [child]: value
-        }
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: value
-      }));
-    }
+  const handleAddNewCarrier = () => {
+    setShowAddCarrierModal(true);
   };
 
-  const handleArrayChange = (field: string, value: string) => {
-    const path = field.split('.');
-    if (path.length === 1) {
-      // Top level array
-      const currentValues = [...formData[field as keyof typeof formData] as string[]];
-      const index = currentValues.indexOf(value);
-      
-      if (index === -1) {
-        currentValues.push(value);
-      } else {
-        currentValues.splice(index, 1);
-      }
-      
-      setFormData(prev => ({
-        ...prev,
-        [field]: currentValues
-      }));
-    } else if (path.length === 2) {
-      // Nested array
-      const [parent, child] = path;
-      const currentValues = [...(formData[parent as keyof typeof formData] as any)[child]];
-      const index = currentValues.indexOf(value);
-      
-      if (index === -1) {
-        currentValues.push(value);
-      } else {
-        currentValues.splice(index, 1);
-      }
-      
-      setFormData(prev => ({
-        ...prev,
-        [parent]: {
-          ...prev[parent as keyof typeof prev],
-          [child]: currentValues
-        }
-      }));
-    }
+  const handleCustomRenewal = () => {
+    setShowCustomRenewalModal(true);
   };
 
-  const handleCoverageChange = (coverage: string, checked: boolean) => {
-    const currentCoverages = [...formData.coverageLines];
-    const currentCommissions = { ...formData.commissionRates };
-    
-    if (checked) {
-      currentCoverages.push(coverage);
-      currentCommissions[coverage] = 15; // Default commission rate
-    } else {
-      const index = currentCoverages.indexOf(coverage);
-      if (index > -1) {
-        currentCoverages.splice(index, 1);
-        delete currentCommissions[coverage];
-      }
-    }
-    
-    setFormData(prev => ({
-      ...prev,
-      coverageLines: currentCoverages,
-      commissionRates: currentCommissions
-    }));
+  const handleSendRenewalRequest = () => {
+    toast.success('Renewal request sent to carrier');
   };
 
-  const handleCommissionChange = (coverage: string, rate: number) => {
-    setFormData(prev => ({
-      ...prev,
-      commissionRates: {
-        ...prev.commissionRates,
-        [coverage]: rate
-      }
-    }));
-  };
+  const renderOverviewTab = () => (
+    <div className="space-y-6">
+      {/* Renewal Summary */}
+      <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Renewal Summary</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div>
+            <p className="text-sm font-medium text-gray-600">Current Carrier</p>
+            <div className="flex items-center space-x-2 mt-1">
+              <Building className="h-4 w-4 text-gray-500" />
+              <p className="text-lg font-semibold text-gray-900">{renewal.currentCarrier}</p>
+            </div>
+          </div>
+          <div>
+            <p className="text-sm font-medium text-gray-600">Current Premium</p>
+            <div className="flex items-center space-x-2 mt-1">
+              <DollarSign className="h-4 w-4 text-gray-500" />
+              <p className="text-lg font-semibold text-gray-900">{formatCurrency(renewal.currentPremium)}</p>
+            </div>
+          </div>
+          <div>
+            <p className="text-sm font-medium text-gray-600">Estimated Renewal</p>
+            <div className="flex items-center space-x-2 mt-1">
+              <DollarSign className="h-4 w-4 text-gray-500" />
+              <p className="text-lg font-semibold text-gray-900">{formatCurrency(renewal.estimatedRenewalPremium)}</p>
+              <span className={`text-sm font-medium ${renewal.changePercentage > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                {renewal.changePercentage > 0 ? '+' : ''}{renewal.changePercentage}%
+              </span>
+            </div>
+          </div>
+          <div>
+            <p className="text-sm font-medium text-gray-600">Renewal Date</p>
+            <div className="flex items-center space-x-2 mt-1">
+              <Calendar className="h-4 w-4 text-gray-500" />
+              <p className="text-lg font-semibold text-gray-900">{formatDate(renewal.renewalDate)}</p>
+            </div>
+          </div>
+          <div>
+            <p className="text-sm font-medium text-gray-600">Days Remaining</p>
+            <div className="flex items-center space-x-2 mt-1">
+              <Clock className="h-4 w-4 text-gray-500" />
+              <p className={`text-lg font-semibold ${
+                renewal.daysRemaining < 0 ? 'text-red-600' :
+                renewal.daysRemaining < 15 ? 'text-yellow-600' :
+                'text-gray-900'
+              }`}>
+                {renewal.daysRemaining < 0 ? 'Expired' : `${renewal.daysRemaining} days`}
+              </p>
+            </div>
+          </div>
+          <div>
+            <p className="text-sm font-medium text-gray-600">Status</p>
+            <div className="flex items-center space-x-2 mt-1">
+              <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                renewal.status === 'bound' ? 'bg-green-100 text-green-800' :
+                renewal.status === 'quoted' ? 'bg-blue-100 text-blue-800' :
+                renewal.status === 'in_progress' ? 'bg-yellow-100 text-yellow-800' :
+                renewal.status === 'lost' ? 'bg-red-100 text-red-800' :
+                'bg-gray-100 text-gray-800'
+              }`}>
+                {renewal.status.replace('_', ' ').toUpperCase()}
+              </span>
+              <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                renewal.priority === 'urgent' ? 'bg-red-100 text-red-800' :
+                renewal.priority === 'high' ? 'bg-orange-100 text-orange-800' :
+                renewal.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                'bg-green-100 text-green-800'
+              }`}>
+                {renewal.priority.toUpperCase()} PRIORITY
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      onSave(formData);
-      onClose();
-    } catch (error) {
-      console.error('Error saving carrier:', error);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+      {/* Coverage Information */}
+      <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Coverage Information</h3>
+        <div className="space-y-4">
+          <div>
+            <p className="text-sm font-medium text-gray-600 mb-2">Coverage Types</p>
+            <div className="flex flex-wrap gap-2">
+              {renewal.coverageType.map((type, index) => (
+                <span key={index} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+                  {type}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
 
-  const nextStep = () => {
-    setStep(prev => Math.min(prev + 1, 5));
-  };
-
-  const prevStep = () => {
-    setStep(prev => Math.max(prev - 1, 1));
-  };
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-white">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="p-3 bg-white bg-opacity-20 rounded-xl">
-                <Building className="h-6 w-6" />
+      {/* AI Recommendations */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200 p-6">
+        <div className="flex items-start space-x-4">
+          <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl">
+            <Zap className="h-6 w-6 text-white" />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-blue-900 mb-2">AI Recommendations</h3>
+            <p className="text-blue-800 mb-4">{renewal.recommendedAction}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-white bg-opacity-50 rounded-lg p-4 border border-blue-200">
+                <p className="font-medium text-blue-900 mb-2">Recommended Contact Method</p>
+                <div className="flex items-center space-x-2">
+                  {renewal.recommendedContactMethod === 'email' && <Mail className="h-4 w-4 text-blue-600" />}
+                  {renewal.recommendedContactMethod === 'call' && <Phone className="h-4 w-4 text-blue-600" />}
+                  {renewal.recommendedContactMethod === 'meeting' && <UsersIcon className="h-4 w-4 text-blue-600" />}
+                  {renewal.recommendedContactMethod === 'video' && <Video className="h-4 w-4 text-blue-600" />}
+                  <span className="text-blue-800 capitalize">{renewal.recommendedContactMethod}</span>
+                </div>
               </div>
-              <div>
-                <h2 className="text-2xl font-bold">Add New Carrier</h2>
-                <p className="text-blue-100">Configure carrier details, contacts, appetite, and commission rates</p>
+              <div className="bg-white bg-opacity-50 rounded-lg p-4 border border-blue-200">
+                <p className="font-medium text-blue-900 mb-2">Client Tenure</p>
+                <div className="flex items-center space-x-2">
+                  <UsersIcon className="h-4 w-4 text-blue-600" />
+                  <span className="text-blue-800">{renewal.clientTenure} {renewal.clientTenure === 1 ? 'year' : 'years'}</span>
+                </div>
               </div>
             </div>
-            <button 
-              onClick={onClose}
-              className="p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-colors"
-            >
-              <X className="h-6 w-6" />
-            </button>
           </div>
-          
-          {/* Progress Steps */}
-          <div className="flex items-center justify-between mt-8 px-4">
-            {[
-              { num: 1, title: "Basic Info" },
-              { num: 2, title: "Contacts" },
-              { num: 3, title: "Appetite" },
-              { num: 4, title: "Coverage" },
-              { num: 5, title: "Review" }
-            ].map((s, i) => (
-              <React.Fragment key={s.num}>
-                <div className="flex flex-col items-center">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                    step >= s.num ? 'bg-white text-blue-600' : 'bg-blue-400 text-white'
-                  }`}>
-                    {step > s.num ? (
-                      <CheckCircle className="h-6 w-6" />
-                    ) : (
-                      <span className="text-lg font-bold">{s.num}</span>
-                    )}
-                  </div>
-                  <span className="text-sm mt-2 text-blue-100">{s.title}</span>
+        </div>
+      </div>
+
+      {/* Client Information */}
+      <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Client Information</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <p className="text-sm font-medium text-gray-600">Contact Name</p>
+            <div className="flex items-center space-x-2 mt-1">
+              <User className="h-4 w-4 text-gray-500" />
+              <p className="text-gray-900">{renewal.clientName}</p>
+            </div>
+          </div>
+          <div>
+            <p className="text-sm font-medium text-gray-600">Business Name</p>
+            <div className="flex items-center space-x-2 mt-1">
+              <Building className="h-4 w-4 text-gray-500" />
+              <p className="text-gray-900">{renewal.businessName}</p>
+            </div>
+          </div>
+          <div>
+            <p className="text-sm font-medium text-gray-600">Email</p>
+            <div className="flex items-center space-x-2 mt-1">
+              <Mail className="h-4 w-4 text-gray-500" />
+              <p className="text-gray-900">{renewal.contactEmail}</p>
+            </div>
+          </div>
+          <div>
+            <p className="text-sm font-medium text-gray-600">Phone</p>
+            <div className="flex items-center space-x-2 mt-1">
+              <Phone className="h-4 w-4 text-gray-500" />
+              <p className="text-gray-900">{renewal.contactPhone}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Notes */}
+      {renewal.notes && (
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Notes</h3>
+          <p className="text-gray-700">{renewal.notes}</p>
+        </div>
+      )}
+    </div>
+  );
+
+  const renderHistoryTab = () => (
+    <div className="space-y-6">
+      <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Policy History</h3>
+        <div className="space-y-4">
+          {[
+            { year: '2023-2024', carrier: renewal.currentCarrier, premium: renewal.currentPremium, change: '+5%' },
+            { year: '2022-2023', carrier: renewal.currentCarrier, premium: renewal.currentPremium * 0.95, change: '+3%' },
+            { year: '2021-2022', carrier: renewal.currentCarrier, premium: renewal.currentPremium * 0.92, change: 'New Business' }
+          ].map((policy, index) => (
+            <div key={index} className="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Calendar className="h-4 w-4 text-blue-600" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center justify-between">
+                  <p className="font-medium text-gray-900">{policy.year}</p>
+                  <p className="text-sm text-gray-600">{policy.change}</p>
                 </div>
-                {i < 4 && (
-                  <div className={`h-1 flex-1 mx-2 ${
-                    step > i + 1 ? 'bg-white' : 'bg-blue-400'
-                  }`} />
-                )}
-              </React.Fragment>
-            ))}
+                <div className="flex items-center space-x-4 text-sm text-gray-600 mt-1">
+                  <span>{policy.carrier}</span>
+                  <span>•</span>
+                  <span>{formatCurrency(policy.premium)}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderOptionsTab = () => (
+    <div className="space-y-6">
+      {/* Current Carrier Renewal */}
+      <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">Current Carrier Renewal</h3>
+          <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+            renewal.changePercentage > 10 ? 'bg-red-100 text-red-800' :
+            renewal.changePercentage > 5 ? 'bg-yellow-100 text-yellow-800' :
+            'bg-green-100 text-green-800'
+          }`}>
+            {renewal.changePercentage > 0 ? '+' : ''}{renewal.changePercentage}% Change
+          </span>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div>
+            <p className="text-sm font-medium text-gray-600">Current Carrier</p>
+            <div className="flex items-center space-x-2 mt-1">
+              <Building className="h-4 w-4 text-gray-500" />
+              <p className="text-lg font-semibold text-gray-900">{renewal.currentCarrier}</p>
+            </div>
+          </div>
+          <div>
+            <p className="text-sm font-medium text-gray-600">Current Premium</p>
+            <div className="flex items-center space-x-2 mt-1">
+              <DollarSign className="h-4 w-4 text-gray-500" />
+              <p className="text-lg font-semibold text-gray-900">{formatCurrency(renewal.currentPremium)}</p>
+            </div>
+          </div>
+          <div>
+            <p className="text-sm font-medium text-gray-600">Estimated Renewal</p>
+            <div className="flex items-center space-x-2 mt-1">
+              <DollarSign className="h-4 w-4 text-gray-500" />
+              <p className="text-lg font-semibold text-gray-900">{formatCurrency(renewal.estimatedRenewalPremium)}</p>
+            </div>
+          </div>
+          <div>
+            <p className="text-sm font-medium text-gray-600">Coverage Types</p>
+            <div className="flex flex-wrap gap-2 mt-1">
+              {renewal.coverageType.map((type, index) => (
+                <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                  {type}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
         
-        {/* Form Content */}
-        <form onSubmit={handleSubmit}>
-          <div className="p-6 overflow-y-auto max-h-[60vh]">
-            {/* Step 1: Basic Information */}
-            {step === 1 && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Carrier Name *
-                    </label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="e.g., Liberty Mutual Insurance"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Carrier Code *
-                    </label>
-                    <input
-                      type="text"
-                      name="code"
-                      value={formData.code}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="e.g., LM"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Status
-                    </label>
-                    <select
-                      name="status"
-                      value={formData.status}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                      <option value="active">Active</option>
-                      <option value="inactive">Inactive</option>
-                      <option value="pending">Pending</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      A.M. Best Rating
-                    </label>
-                    <select
-                      name="rating"
-                      value={formData.rating}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                      <option value="A++">A++ (Superior)</option>
-                      <option value="A+">A+ (Superior)</option>
-                      <option value="A">A (Excellent)</option>
-                      <option value="A-">A- (Excellent)</option>
-                      <option value="B++">B++ (Good)</option>
-                      <option value="B+">B+ (Good)</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-            )}
-            
-            {/* Step 2: Contact Information */}
-            {step === 2 && (
-              <div className="space-y-8">
-                {/* Manager Contact Information */}
-                <div className="border-t border-gray-200 pt-6">
-                  <div className="flex items-center space-x-3 mb-6">
-                    <div className="p-2 bg-blue-100 rounded-lg">
-                      <User className="h-5 w-5 text-blue-600" />
-                    </div>
-                    <h3 className="text-lg font-medium text-gray-900">Manager Contact Information</h3>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Manager Name
-                      </label>
-                      <input
-                        type="text"
-                        name="manager.name"
-                        value={formData.manager.name}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Manager name"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Manager Email
-                      </label>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <input
-                          type="email"
-                          name="manager.email"
-                          value={formData.manager.email}
-                          onChange={handleChange}
-                          className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          placeholder="manager@carrier.com"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Manager Phone
-                      </label>
-                      <div className="relative">
-                        <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <input
-                          type="tel"
-                          name="manager.phone"
-                          value={formData.manager.phone}
-                          onChange={handleChange}
-                          className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          placeholder="(555) 123-4567"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
+        <div className="flex items-center space-x-4">
+          <button 
+            onClick={handleSendRenewalRequest}
+            className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <Send className="h-4 w-4" />
+            <span>Request Renewal Quote</span>
+          </button>
+          <button 
+            onClick={handleCustomRenewal}
+            className="flex items-center space-x-2 border border-blue-600 text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors"
+          >
+            <Edit className="h-4 w-4" />
+            <span>Request Pricing Options</span>
+          </button>
+        </div>
+      </div>
+      
+      {/* Additional Options */}
+      <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-lg font-semibold text-gray-900">Additional Market Options</h3>
+          <button 
+            onClick={handleAddNewCarrier}
+            className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-md hover:shadow-lg font-medium"
+          >
+            <Plus className="h-4 w-4" />
+            <span>Add Carrier</span>
+          </button>
+        </div>
+        
+        <div className="text-center py-12 border-2 border-dashed border-gray-300 rounded-xl">
+          <Building className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+          <h4 className="text-lg font-medium text-gray-900 mb-2">No additional carriers added yet</h4>
+          <p className="text-gray-600 mb-6 max-w-md mx-auto">
+            Add carriers to shop this renewal and compare quotes from multiple markets
+          </p>
+          <button 
+            onClick={handleAddNewCarrier}
+            className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors mx-auto"
+          >
+            <Plus className="h-4 w-4" />
+            <span>Add Carrier</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 
-                {/* Underwriter Contact Information */}
-                <div className="border-t border-gray-200 pt-6">
-                  <div className="flex items-center space-x-3 mb-6">
-                    <div className="p-2 bg-green-100 rounded-lg">
-                      <Users className="h-5 w-5 text-green-600" />
-                    </div>
-                    <h3 className="text-lg font-medium text-gray-900">Underwriter Contact Information</h3>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Underwriter Name
-                      </label>
-                      <input
-                        type="text"
-                        name="underwriter.name"
-                        value={formData.underwriter.name}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Underwriter name"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Underwriter Email
-                      </label>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <input
-                          type="email"
-                          name="underwriter.email"
-                          value={formData.underwriter.email}
-                          onChange={handleChange}
-                          className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          placeholder="underwriting@carrier.com"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Underwriter Phone
-                      </label>
-                      <div className="relative">
-                        <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <input
-                          type="tel"
-                          name="underwriter.phone"
-                          value={formData.underwriter.phone}
-                          onChange={handleChange}
-                          className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          placeholder="(555) 123-4567"
-                        />
-                      </div>
-                    </div>
-                  </div>
+  const renderDocumentsTab = () => (
+    <div className="space-y-6">
+      <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">Policy Documents</h3>
+          <button className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+            <Upload className="h-4 w-4" />
+            <span>Upload Document</span>
+          </button>
+        </div>
+        <div className="space-y-4">
+          {[
+            { name: 'Current Policy.pdf', type: 'Policy', date: '2023-03-15', size: '2.4 MB' },
+            { name: 'Loss Runs (5 Year).pdf', type: 'Loss Run', date: '2023-12-10', size: '1.8 MB' },
+            { name: 'Schedule of Values.xlsx', type: 'Schedule', date: '2023-03-15', size: '1.2 MB' }
+          ].map((doc, index) => (
+            <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <FileText className="h-4 w-4 text-blue-600" />
                 </div>
-              </div>
-            )}
-
-            {/* Step 3: Appetite Configuration */}
-            {step === 3 && (
-              <div className="space-y-6">
-                <div className="flex items-center space-x-3 mb-6">
-                  <div className="p-2 bg-purple-100 rounded-lg">
-                    <Target className="h-5 w-5 text-purple-600" />
-                  </div>
-                  <h3 className="text-lg font-medium text-gray-900">Appetite Configuration</h3>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Maximum Policy Limit
-                    </label>
-                    <div className="relative">
-                      <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <input
-                        type="number"
-                        name="appetite.maxPolicyLimit"
-                        value={formData.appetite.maxPolicyLimit}
-                        onChange={handleChange}
-                        className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="10000000"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Risk Tolerance
-                    </label>
-                    <select
-                      name="appetite.riskTolerance"
-                      value={formData.appetite.riskTolerance}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                      <option value="conservative">Conservative</option>
-                      <option value="moderate">Moderate</option>
-                      <option value="aggressive">Aggressive</option>
-                    </select>
-                  </div>
-                </div>
-                
-                <div className="mt-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Premium Range
-                  </label>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="relative">
-                      <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <input
-                        type="number"
-                        name="appetite.premiumRange.min"
-                        value={formData.appetite.premiumRange.min}
-                        onChange={handleChange}
-                        className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Minimum premium"
-                      />
-                    </div>
-                    <div className="relative">
-                      <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <input
-                        type="number"
-                        name="appetite.premiumRange.max"
-                        value={formData.appetite.premiumRange.max}
-                        onChange={handleChange}
-                        className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Maximum premium"
-                      />
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="mt-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Preferred Industries
-                  </label>
-                  <div className="grid grid-cols-2 gap-3">
-                    {[
-                      'Technology', 'Manufacturing', 'Construction', 'Retail',
-                      'Professional Services', 'Healthcare', 'Financial Services', 'Real Estate'
-                    ].map(industry => (
-                      <label key={industry} className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          checked={formData.appetite.preferredIndustries.includes(industry)}
-                          onChange={() => handleArrayChange('appetite.preferredIndustries', industry)}
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                        />
-                        <span className="text-sm text-gray-700">{industry}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-                
-                <div className="mt-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Geographic Restrictions
-                  </label>
-                  <div className="grid grid-cols-4 gap-3">
-                    {['CA', 'NY', 'TX', 'FL', 'IL', 'PA', 'OH', 'GA', 'All US States'].map(state => (
-                      <label key={state} className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          checked={formData.appetite.geographicRestrictions.includes(state)}
-                          onChange={() => handleArrayChange('appetite.geographicRestrictions', state)}
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                        />
-                        <span className="text-sm text-gray-700">{state}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-                
-                <div className="mt-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Special Considerations
-                  </label>
-                  <textarea
-                    name="notes"
-                    value={formData.notes}
-                    onChange={handleChange}
-                    rows={3}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Enter any special underwriting considerations, exclusions, or notes..."
-                  />
-                </div>
-              </div>
-            )}
-            
-            {/* Step 4: Coverage & Commission */}
-            {step === 4 && (
-              <div className="space-y-6">
-                <div className="flex items-center space-x-3 mb-6">
-                  <div className="p-2 bg-green-100 rounded-lg">
-                    <Shield className="h-5 w-5 text-green-600" />
-                  </div>
-                  <h3 className="text-lg font-medium text-gray-900">Coverage Lines & Commission Rates</h3>
-                </div>
-
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-4">
-                    Coverage Lines & Commission Rates
-                  </label>
-                  <div className="space-y-4">
-                    {coverageOptions.map(coverage => (
-                      <div key={coverage} className="flex items-center justify-between p-4 border border-gray-200 rounded-xl">
-                        <div className="flex items-center space-x-3">
-                          <input
-                            type="checkbox"
-                            checked={formData.coverageLines.includes(coverage)}
-                            onChange={(e) => handleCoverageChange(coverage, e.target.checked)}
-                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                          />
-                          <span className="text-sm font-medium text-gray-700">{coverage}</span>
-                        </div>
-                        
-                        {formData.coverageLines.includes(coverage) && (
-                          <div className="flex items-center space-x-2">
-                            <Percent className="h-4 w-4 text-gray-400" />
-                            <input
-                              type="number"
-                              min="0"
-                              max="100"
-                              step="0.5"
-                              value={formData.commissionRates[coverage] || 15}
-                              onChange={(e) => handleCommissionChange(coverage, parseFloat(e.target.value))}
-                              className="w-20 px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                              placeholder="15"
-                            />
-                            <span className="text-sm text-gray-600">%</span>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Submission Requirements
-                  </label>
-                  <div className="grid grid-cols-2 gap-3">
-                    {[
-                      'ACORD 125', 'ACORD 126', 'ACORD 140', 'Loss Runs',
-                      'Financial Statements', 'Safety Manual', 'Experience Mod',
-                      'Supplemental Applications'
-                    ].map(req => (
-                      <label key={req} className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          checked={formData.submissionRequirements.includes(req)}
-                          onChange={() => handleArrayChange('submissionRequirements', req)}
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                        />
-                        <span className="text-sm text-gray-700">{req}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Preferred Submission Method
-                  </label>
-                  <div className="grid grid-cols-3 gap-4">
-                    {[
-                      { value: 'email', label: 'Email', icon: Mail },
-                      { value: 'portal', label: 'Carrier Portal', icon: Globe },
-                      { value: 'api', label: 'API Integration', icon: Shield }
-                    ].map(method => (
-                      <label 
-                        key={method.value}
-                        className={`flex items-center space-x-3 p-4 border-2 rounded-xl cursor-pointer transition-colors ${
-                          formData.preferredSubmissionMethod === method.value
-                            ? 'border-blue-500 bg-blue-50'
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                      >
-                        <input
-                          type="radio"
-                          name="preferredSubmissionMethod"
-                          value={method.value}
-                          checked={formData.preferredSubmissionMethod === method.value}
-                          onChange={handleChange}
-                          className="sr-only"
-                        />
-                        <method.icon className={`h-5 w-5 ${
-                          formData.preferredSubmissionMethod === method.value
-                            ? 'text-blue-600'
-                            : 'text-gray-400'
-                        }`} />
-                        <span className={`text-sm font-medium ${
-                          formData.preferredSubmissionMethod === method.value
-                            ? 'text-blue-700'
-                            : 'text-gray-700'
-                        }`}>
-                          {method.label}
-                        </span>
-                      </label>
-                    ))}
+                  <p className="font-medium text-gray-900">{doc.name}</p>
+                  <div className="flex items-center space-x-2 text-sm text-gray-600">
+                    <span>{doc.type}</span>
+                    <span>•</span>
+                    <span>{doc.date}</span>
+                    <span>•</span>
+                    <span>{doc.size}</span>
                   </div>
                 </div>
               </div>
-            )}
-            
-            {/* Step 5: Review */}
-            {step === 5 && (
-              <div className="space-y-6">
-                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                  <div className="flex items-start space-x-3">
-                    <CheckCircle className="h-5 w-5 text-blue-600 mt-0.5" />
-                    <div>
-                      <h4 className="font-medium text-blue-900">Ready to Add Carrier</h4>
-                      <p className="text-blue-800 text-sm mt-1">
-                        Please review the carrier information below before saving. You can go back to make changes if needed.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="bg-white rounded-xl border border-gray-200 p-4">
-                    <h4 className="font-medium text-gray-900 mb-3">Basic Information</h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Carrier Name:</span>
-                        <span className="font-medium text-gray-900">{formData.name}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Carrier Code:</span>
-                        <span className="font-medium text-gray-900">{formData.code}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Status:</span>
-                        <span className="font-medium text-gray-900 capitalize">{formData.status}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">A.M. Best Rating:</span>
-                        <span className="font-medium text-gray-900">{formData.rating}</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-white rounded-xl border border-gray-200 p-4">
-                    <h4 className="font-medium text-gray-900 mb-3">Manager Contact</h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Name:</span>
-                        <span className="font-medium text-gray-900">{formData.manager.name || 'Not provided'}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Email:</span>
-                        <span className="font-medium text-gray-900">{formData.manager.email || 'Not provided'}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Phone:</span>
-                        <span className="font-medium text-gray-900">{formData.manager.phone || 'Not provided'}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-white rounded-xl border border-gray-200 p-4">
-                    <h4 className="font-medium text-gray-900 mb-3">Underwriter Contact</h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Name:</span>
-                        <span className="font-medium text-gray-900">{formData.underwriter.name || 'Not provided'}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Email:</span>
-                        <span className="font-medium text-gray-900">{formData.underwriter.email || 'Not provided'}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Phone:</span>
-                        <span className="font-medium text-gray-900">{formData.underwriter.phone || 'Not provided'}</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-white rounded-xl border border-gray-200 p-4">
-                    <h4 className="font-medium text-gray-900 mb-3">Appetite</h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Max Policy Limit:</span>
-                        <span className="font-medium text-gray-900">${formData.appetite.maxPolicyLimit.toLocaleString()}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Premium Range:</span>
-                        <span className="font-medium text-gray-900">
-                          ${formData.appetite.premiumRange.min.toLocaleString()} - ${formData.appetite.premiumRange.max.toLocaleString()}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Risk Tolerance:</span>
-                        <span className="font-medium text-gray-900 capitalize">{formData.appetite.riskTolerance}</span>
-                      </div>
-                      <div>
-                        <span className="text-gray-600">Preferred Industries:</span>
-                        <div className="mt-1 flex flex-wrap gap-1">
-                          {formData.appetite.preferredIndustries.length > 0 ? (
-                            formData.appetite.preferredIndustries.map(industry => (
-                              <span key={industry} className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
-                                {industry}
-                              </span>
-                            ))
-                          ) : (
-                            <span className="text-gray-500">None selected</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="bg-white rounded-xl border border-gray-200 p-4">
-                    <h4 className="font-medium text-gray-900 mb-3">Coverage & Commission</h4>
-                    <div className="space-y-2 text-sm">
-                      <div>
-                        <span className="text-gray-600">Coverage Lines & Rates:</span>
-                        <div className="mt-1 space-y-1">
-                          {formData.coverageLines.length > 0 ? (
-                            formData.coverageLines.map(line => (
-                              <div key={line} className="flex justify-between items-center">
-                                <span className="text-gray-900">{line}</span>
-                                <span className="font-medium text-green-600">
-                                  {formData.commissionRates[line] || 15}%
-                                </span>
-                              </div>
-                            ))
-                          ) : (
-                            <span className="text-gray-500">None selected</span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Preferred Submission Method:</span>
-                        <span className="font-medium text-gray-900 capitalize">{formData.preferredSubmissionMethod}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-white rounded-xl border border-gray-200 p-4">
-                    <h4 className="font-medium text-gray-900 mb-3">Submission Requirements</h4>
-                    <div className="space-y-2 text-sm">
-                      <div>
-                        <span className="text-gray-600">Required Documents:</span>
-                        <div className="mt-1 flex flex-wrap gap-1">
-                          {formData.submissionRequirements.length > 0 ? (
-                            formData.submissionRequirements.map(req => (
-                              <span key={req} className="px-2 py-1 bg-purple-100 text-purple-800 rounded text-xs">
-                                {req}
-                              </span>
-                            ))
-                          ) : (
-                            <span className="text-gray-500">None selected</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                {formData.notes && (
-                  <div className="bg-white rounded-xl border border-gray-200 p-4">
-                    <h4 className="font-medium text-gray-900 mb-3">Notes</h4>
-                    <p className="text-sm text-gray-700">{formData.notes}</p>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-          
-          {/* Footer */}
-          <div className="border-t border-gray-200 p-6 bg-gray-50 flex items-center justify-between">            
-            <div className="flex items-center space-x-3">
-              {step > 1 && (
-                <button
-                  type="button"
-                  onClick={prevStep}
-                  className="flex items-center space-x-2 px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-100 transition-colors"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                  <span>Back</span>
+              <div className="flex items-center space-x-2">
+                <button className="p-2 text-gray-400 hover:text-gray-600">
+                  <Eye className="h-4 w-4" />
                 </button>
-              )}
-              
-              {step === 1 && (
+                <button className="p-2 text-gray-400 hover:text-gray-600">
+                  <Download className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderCommunicationTab = () => (
+    <div className="space-y-6">
+      <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">Communication History</h3>
+          <div className="flex items-center space-x-2">
+            <button className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+              <Mail className="h-4 w-4" />
+              <span>Send Email</span>
+            </button>
+            <button className="flex items-center space-x-2 border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors">
+              <Phone className="h-4 w-4" />
+              <span>Log Call</span>
+            </button>
+          </div>
+        </div>
+        <div className="space-y-4">
+          {[
+            { type: 'email', direction: 'outbound', subject: 'Upcoming Renewal', date: '2024-01-15', status: 'opened' },
+            { type: 'call', direction: 'outbound', subject: 'Renewal Discussion', date: '2024-01-10', status: 'completed' }
+          ].map((comm, index) => (
+            <div key={index} className="flex items-start space-x-3 p-4 bg-gray-50 rounded-lg">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                {comm.type === 'email' ? <Mail className="h-4 w-4 text-blue-600" /> : <Phone className="h-4 w-4 text-blue-600" />}
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center justify-between">
+                  <p className="font-medium text-gray-900">{comm.subject}</p>
+                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                    comm.status === 'opened' ? 'bg-green-100 text-green-800' :
+                    comm.status === 'sent' ? 'bg-blue-100 text-blue-800' :
+                    'bg-gray-100 text-gray-800'
+                  }`}>
+                    {comm.status.toUpperCase()}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2 text-sm text-gray-600 mt-1">
+                  <span className="capitalize">{comm.direction}</span>
+                  <span>•</span>
+                  <span>{comm.date}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'overview':
+        return renderOverviewTab();
+      case 'history':
+        return renderHistoryTab();
+      case 'options':
+        return renderOptionsTab();
+      case 'documents':
+        return renderDocumentsTab();
+      case 'communication':
+        return renderCommunicationTab();
+      default:
+        return <div>Content not found</div>;
+    }
+  };
+
+  // Mock function for Video icon since it's not imported
+  const Video = (props: any) => (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+    >
+      <path d="M22 8.5V15.5C22 16.3 21.3 17 20.5 17H3.5C2.7 17 2 16.3 2 15.5V8.5C2 7.7 2.7 7 3.5 7H20.5C21.3 7 22 7.7 22 8.5Z" />
+      <path d="M18 12L13 9V15L18 12Z" />
+    </svg>
+  );
+
+            {step > 1 ? (
+              <button
+                type="button"
+                onClick={prevStep}
+                className="flex items-center space-x-2 px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-100 transition-colors"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                <span>Back</span>
+              </button>
+            ) : (
               <button
                 type="button"
                 onClick={onClose}
@@ -859,55 +539,344 @@ const AddCarrierModal: React.FC<AddCarrierModalProps> = ({ isOpen, onClose, onSa
                 <X className="h-4 w-4" />
                 <span>Cancel</span>
               </button>
-              )}
-            </div>  
+            )}
             
+            {step < 5 ? (
+              <button
+                type="button"
+                onClick={nextStep}
+                className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-md"
+              >
+                <span>Next</span>
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            ) : (
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="flex items-center space-x-2 bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-3 rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-300 shadow-md disabled:opacity-50"
+              >
+                {isSubmitting ? (
+                  <>
+                    <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+                    <span>Saving...</span>
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4" />
+                    <span>Save Carrier</span>
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Status Banner */}
+        <div className={`mb-6 p-4 rounded-xl ${
+          renewal.status === 'bound' ? 'bg-green-50 border border-green-200' :
+          renewal.status === 'quoted' ? 'bg-blue-50 border border-blue-200' :
+          renewal.status === 'in_progress' ? 'bg-yellow-50 border border-yellow-200' :
+          renewal.status === 'lost' ? 'bg-red-50 border border-red-200' :
+          'bg-gray-50 border border-gray-200'
+        }`}>
+          <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              {step > 1 && (
-                <button
-                  type="button"
-                  onClick={prevStep}
-                  className="flex items-center space-x-2 px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-100 transition-colors"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                  <span>Back</span>
-                </button>
-              )}
-              
-              {step < 5 ? (
-                <button
-                  type="button"
-                  onClick={nextStep}
-                  className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-md"
-                >
-                  <span>Continue</span>
-                  <ChevronRight className="h-4 w-4" />
-                </button>
-              ) : (
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="flex items-center space-x-2 bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-3 rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-300 shadow-md disabled:opacity-50"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
-                      <span>Saving...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Save className="h-4 w-4" />
-                      <span>Save Carrier</span>
-                    </>
-                  )}
-                </button>
-              )}
+              {renewal.status === 'bound' && <CheckCircle className="h-5 w-5 text-green-600" />}
+              {renewal.status === 'quoted' && <FileText className="h-5 w-5 text-blue-600" />}
+              {renewal.status === 'in_progress' && <Clock className="h-5 w-5 text-yellow-600" />}
+              {renewal.status === 'lost' && <AlertTriangle className="h-5 w-5 text-red-600" />}
+              {renewal.status === 'pending' && <Clock className="h-5 w-5 text-gray-600" />}
+              <div>
+                <p className={`font-medium ${
+                  renewal.status === 'bound' ? 'text-green-900' :
+                  renewal.status === 'quoted' ? 'text-blue-900' :
+                  renewal.status === 'in_progress' ? 'text-yellow-900' :
+                  renewal.status === 'lost' ? 'text-red-900' :
+                  'text-gray-900'
+                }`}>
+                  {renewal.status === 'bound' ? 'Renewal Bound' :
+                   renewal.status === 'quoted' ? 'Quotes Received' :
+                   renewal.status === 'in_progress' ? 'Renewal In Progress' :
+                   renewal.status === 'lost' ? 'Renewal Lost' :
+                   'Renewal Pending'}
+                </p>
+                <p className={`text-sm ${
+                  renewal.status === 'bound' ? 'text-green-800' :
+                  renewal.status === 'quoted' ? 'text-blue-800' :
+                  renewal.status === 'in_progress' ? 'text-yellow-800' :
+                  renewal.status === 'lost' ? 'text-red-800' :
+                  'text-gray-800'
+                }`}>
+                  {renewal.status === 'bound' ? 'Policy has been renewed and bound.' :
+                   renewal.status === 'quoted' ? 'Quotes have been received and are ready for review.' :
+                   renewal.status === 'in_progress' ? 'Renewal is being processed with carriers.' :
+                   renewal.status === 'lost' ? 'Client did not renew with us.' :
+                   `Renewal is due in ${renewal.daysRemaining} days.`}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="text-right">
+                <p className="text-sm font-medium text-gray-600">Renewal Date</p>
+                <p className="text-lg font-semibold text-gray-900">{formatDate(renewal.renewalDate)}</p>
+              </div>
+              <div className={`p-3 rounded-xl ${
+                renewal.daysRemaining < 0 ? 'bg-red-100' :
+                renewal.daysRemaining < 15 ? 'bg-yellow-100' :
+                renewal.daysRemaining < 30 ? 'bg-blue-100' :
+                'bg-green-100'
+              }`}>
+                <Calendar className={`h-6 w-6 ${
+                  renewal.daysRemaining < 0 ? 'text-red-600' :
+                  renewal.daysRemaining < 15 ? 'text-yellow-600' :
+                  renewal.daysRemaining < 30 ? 'text-blue-600' :
+                  'text-green-600'
+                }`} />
+              </div>
             </div>
           </div>
-        </form>
+        </div>
+
+        {/* Tabs */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+          <div className="border-b border-gray-200">
+            <nav className="flex space-x-8 px-6">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                    activeTab === tab.id
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  <tab.icon className="h-4 w-4" />
+                  <span>{tab.label}</span>
+                </button>
+              ))}
+            </nav>
+          </div>
+
+          {/* Tab Content */}
+          <div className="p-6">
+            {renderTabContent()}
+          </div>
+        </div>
       </div>
+
+      {/* Add Carrier Modal */}
+      {showAddCarrierModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden shadow-2xl">
+            <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-blue-100">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="p-3 bg-blue-600 rounded-xl">
+                    <Building className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-blue-900">Add Market Option</h2>
+                    <p className="text-blue-800">Add a carrier to shop this renewal</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setShowAddCarrierModal(false)}
+                  className="p-2 hover:bg-white hover:bg-opacity-50 rounded-lg transition-colors"
+                >
+                  <X className="h-5 w-5 text-blue-600" />
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6 overflow-y-auto max-h-[70vh]">
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Carrier Name *
+                    </label>
+                    <select
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="">Select a carrier</option>
+                      <option value="travelers">Travelers</option>
+                      <option value="chubb">Chubb</option>
+                      <option value="hartford">The Hartford</option>
+                      <option value="cna">CNA</option>
+                      <option value="nationwide">Nationwide</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Underwriter Email *
+                    </label>
+                    <input
+                      type="email"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="underwriter@carrier.com"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Submission Notes
+                    </label>
+                    <textarea
+                      rows={3}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Any specific notes for this carrier submission..."
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="border-t border-gray-200 p-6 bg-gray-50 flex items-center justify-between">
+              <button
+                onClick={() => setShowAddCarrierModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 font-semibold"
+              >
+                <Plus className="h-4 w-4" />
+                <span>Add Carrier</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Custom Renewal Modal */}
+      {showCustomRenewalModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden shadow-2xl">
+            <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-blue-100">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="p-3 bg-blue-600 rounded-xl">
+                    <Edit className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-blue-900">Request Pricing Options</h2>
+                    <p className="text-blue-800">Request different pricing scenarios from {renewal.currentCarrier}</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setShowCustomRenewalModal(false)}
+                  className="p-2 hover:bg-white hover:bg-opacity-50 rounded-lg transition-colors"
+                >
+                  <X className="h-5 w-5 text-blue-600" />
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6 overflow-y-auto max-h-[70vh]">
+              <div className="space-y-6">
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <div className="flex items-start space-x-3">
+                    <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5" />
+                    <div>
+                      <h4 className="font-medium text-yellow-900">Request Multiple Options</h4>
+                      <p className="text-yellow-800 text-sm mt-1">
+                        You can request different coverage options or deductible scenarios to help your client make an informed decision.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Option 1: Current Coverage (Base Option)
+                  </label>
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-700">Current coverage with estimated {renewal.changePercentage}% increase</p>
+                    <p className="font-medium text-gray-900 mt-1">{formatCurrency(renewal.estimatedRenewalPremium)}</p>
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Option 2: Higher Deductible
+                  </label>
+                  <div className="p-4 border border-gray-200 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm text-gray-700">Increase deductible to:</p>
+                      <select className="border border-gray-200 rounded-lg px-3 py-2 text-sm">
+                        <option value="5000">$5,000</option>
+                        <option value="10000">$10,000</option>
+                        <option value="25000">$25,000</option>
+                      </select>
+                    </div>
+                    <p className="text-xs text-gray-600">This option may reduce premium by approximately 5-15%</p>
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Option 3: Coverage Adjustments
+                  </label>
+                  <div className="p-4 border border-gray-200 rounded-lg">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm text-gray-700">Adjust liability limits:</p>
+                        <select className="border border-gray-200 rounded-lg px-3 py-2 text-sm">
+                          <option value="1m">$1M/$2M</option>
+                          <option value="2m">$2M/$4M</option>
+                          <option value="3m">$3M/$6M</option>
+                        </select>
+                      </div>
+                      <div className="flex items-center">
+                        <input type="checkbox" className="mr-2" />
+                        <span className="text-sm text-gray-700">Include additional cyber coverage</span>
+                      </div>
+                      <div className="flex items-center">
+                        <input type="checkbox" className="mr-2" />
+                        <span className="text-sm text-gray-700">Remove terrorism coverage</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Additional Notes
+                  </label>
+                  <textarea
+                    rows={3}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Any specific requests or notes for the underwriter..."
+                  />
+                </div>
+              </div>
+            </div>
+            
+            <div className="border-t border-gray-200 p-6 bg-gray-50 flex items-center justify-between">
+              <button
+                onClick={() => setShowCustomRenewalModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setShowCustomRenewalModal(false);
+                  toast.success('Pricing options request sent to carrier');
+                }}
+                className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 font-semibold"
+              >
+                <Send className="h-4 w-4" />
+                <span>Send Request</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
-export default AddCarrierModal;
+export default RenewalDetail;
