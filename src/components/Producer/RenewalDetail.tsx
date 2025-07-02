@@ -37,7 +37,7 @@ import {
   Plus, 
   X,
   Send,
-  Users,
+  Users as UsersIcon,
   Upload
 } from 'lucide-react';
 import { mockRenewals } from '../../data/mockData';
@@ -197,7 +197,7 @@ const RenewalDetail: React.FC = () => {
                 <div className="flex items-center space-x-2">
                   {renewal.recommendedContactMethod === 'email' && <Mail className="h-4 w-4 text-blue-600" />}
                   {renewal.recommendedContactMethod === 'call' && <Phone className="h-4 w-4 text-blue-600" />}
-                  {renewal.recommendedContactMethod === 'meeting' && <Users className="h-4 w-4 text-blue-600" />}
+                  {renewal.recommendedContactMethod === 'meeting' && <UsersIcon className="h-4 w-4 text-blue-600" />}
                   {renewal.recommendedContactMethod === 'video' && <Video className="h-4 w-4 text-blue-600" />}
                   <span className="text-blue-800 capitalize">{renewal.recommendedContactMethod}</span>
                 </div>
@@ -205,7 +205,7 @@ const RenewalDetail: React.FC = () => {
               <div className="bg-white bg-opacity-50 rounded-lg p-4 border border-blue-200">
                 <p className="font-medium text-blue-900 mb-2">Client Tenure</p>
                 <div className="flex items-center space-x-2">
-                  <Users className="h-4 w-4 text-blue-600" />
+                  <UsersIcon className="h-4 w-4 text-blue-600" />
                   <span className="text-blue-800">{renewal.clientTenure} {renewal.clientTenure === 1 ? 'year' : 'years'}</span>
                 </div>
               </div>
