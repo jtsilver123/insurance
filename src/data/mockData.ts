@@ -100,7 +100,7 @@ export const mockActivities: Activity[] = [
   }
 ];
 
-export const mockCarriers: Carrier[] = [
+const mockCarriers: Carrier[] = [
   {
     id: 'carrier1',
     name: 'Liberty Mutual',
