@@ -22,7 +22,7 @@ import {
   BarChart3,
   Download,
   Send,
-  Star, Eye, Download, Copy, ExternalLink, Settings, MoreVertical,
+  Star, Eye, Copy, ExternalLink, Settings, MoreVertical,
   Edit, Archive, Trash2, RefreshCw, TrendingUp, TrendingDown, BarChart2,
   PieChart, LineChart, Zap, Target, Award, Plus, X
 } from 'lucide-react';
