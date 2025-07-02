@@ -36,7 +36,9 @@ import {
   Award, 
   Plus, 
   X,
-  Send
+  Send,
+  Users,
+  Upload
 } from 'lucide-react';
 import { mockRenewals } from '../../data/mockData';
 import { formatCurrency, formatDate } from '../../utils/formatters';
