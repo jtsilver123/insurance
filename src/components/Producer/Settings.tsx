@@ -258,8 +258,7 @@ const Settings: React.FC = () => {
     { id: 'carriers', label: 'Carrier Profiles', icon: Building },
     { id: 'documents', label: 'Document Templates', icon: FileText },
     { id: 'automations', label: 'Workflow Automations', icon: Zap },
-    { id: 'billing', label: 'Billing', icon: CreditCard },
-    { id: 'team', label: 'Team', icon: Users }
+    { id: 'team', label: 'Team & Billing', icon: Users }
   ];
 
   const handleSave = async () => {
@@ -762,7 +761,86 @@ const Settings: React.FC = () => {
   const renderBillingTab = () => (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Current Plan</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Team Members & Billing</h3>
+        <p className="text-sm text-gray-600 mb-6">Manage your team access, permissions, and subscription plan</p>
+        
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h4 className="font-medium text-gray-900">Team Members</h4>
+            <p className="text-sm text-gray-600">Manage your team access and permissions</p>
+          </div>
+          <button className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 font-semibold">
+            <Plus className="h-4 w-4" />
+            <span>Invite Member</span>
+          </button>
+        </div>
+        
+        <div className="bg-white rounded-xl border border-gray-200 mb-8">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                <tr>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <div className="h-10 w-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
+                        <span className="text-sm font-bold text-white">JD</span>
+                      </div>
+                      <div className="ml-4">
+                        <div className="text-sm font-medium text-gray-900">John Doe</div>
+                        <div className="text-xs text-gray-500">Account Owner</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">john@example.com</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">Admin</span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active</span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <span className="text-gray-400">Owner</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <div className="h-10 w-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center">
+                        <span className="text-sm font-bold text-white">SJ</span>
+                      </div>
+                      <div className="ml-4">
+                        <div className="text-sm font-medium text-gray-900">Sarah Johnson</div>
+                        <div className="text-xs text-gray-500">Team Member</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">sarah@example.com</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">Producer</span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active</span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <button className="text-blue-600 hover:text-blue-800 mr-3">Edit</button>
+                    <button className="text-red-600 hover:text-red-800">Remove</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        
+        <h4 className="font-medium text-gray-900 mb-4 border-t border-gray-200 pt-6">Current Plan</h4>
         <div className="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-2xl p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -770,26 +848,26 @@ const Settings: React.FC = () => {
               <p className="text-blue-700">$99/month • Billed annually</p>
               <p className="text-sm text-blue-600 mt-2">Next billing date: March 15, 2024</p>
             </div>
-            <button className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 font-semibold">
-              Upgrade Plan
-            </button>
+            <div>
+              <button className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 font-semibold">
+                Upgrade Plan
+              </button>
+              <p className="text-sm text-blue-600 mt-2 text-center">$49/user/month</p>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
-  );
-
-  const renderTeamTab = () => (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-medium text-gray-900">Team Members</h3>
-          <p className="text-sm text-gray-600">Manage your team access and permissions</p>
+        
+        <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+          <div className="flex items-start space-x-3">
+            <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5" />
+            <div>
+              <h4 className="font-medium text-yellow-900">Billing Information</h4>
+              <p className="text-yellow-800 text-sm mt-1">
+                Your plan is billed annually. You currently have 2 team members. Adding additional team members will be prorated for your current billing period.
+              </p>
+            </div>
+          </div>
         </div>
-        <button className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 font-semibold">
-          <Plus className="h-4 w-4" />
-          <span>Invite Member</span>
-        </button>
       </div>
     </div>
   );
@@ -833,8 +911,7 @@ const Settings: React.FC = () => {
             {activeTab === 'carriers' && renderCarriersTab()}
             {activeTab === 'documents' && renderDocumentsTab()}
             {activeTab === 'automations' && renderAutomationsTab()}
-            {activeTab === 'billing' && renderBillingTab()}
-            {activeTab === 'team' && renderTeamTab()}
+            {activeTab === 'team' && renderBillingTab()}
 
             {/* Save Button */}
             {(activeTab === 'profile' || activeTab === 'carriers' || activeTab === 'documents' || activeTab === 'automations') && (
