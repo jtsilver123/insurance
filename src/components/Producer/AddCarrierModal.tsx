@@ -1,63 +1,133 @@
-Here's the fixed version with all missing closing brackets added:
+import React, { useState } from 'react';
+import { X, Building, Plus, Users } from 'lucide-react';
 
-```typescript
-const UsersIcon = Users; // Add this line at the top level
+interface AddCarrierModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  renewalId: string;
+}
 
-return (
-  <div className="container mx-auto px-4 py-6 max-w-7xl">
-    {/* Header */}
-    <div className="flex items-center justify-between mb-6">
-      <div className="flex items-center space-x-4">
-        <button
-          onClick={() => navigate('/producer/renewals')}
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-        >
-          <ArrowLeft className="h-5 w-5 text-gray-600" />
-        </button>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">{renewal.businessName}</h1>
-          <p className="text-gray-600">Renewal #{renewal.id}</p>
-        </div>
-      </div>
-      
-      <div className="flex items-center space-x-3">
-        <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-          <RefreshCw className="h-5 w-5 text-gray-600" />
-        </button>
-        <div className="relative">
-          <button 
-            onClick={() => setDropdownOpen(!dropdownOpen)}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <MoreVertical className="h-5 w-5 text-gray-600" />
-          </button>
-          {dropdownOpen && (
-            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1">
-              <button className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2">
-                <Edit className="h-4 w-4" />
-                <span>Edit Renewal</span>
-              </button>
-              <button className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2">
-                <Archive className="h-4 w-4" />
-                <span>Archive</span>
-              </button>
-              <button className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2">
-                <Trash2 className="h-4 w-4" />
-                <span>Delete</span>
-              </button>
+const AddCarrierModal: React.FC<AddCarrierModalProps> = ({ isOpen, onClose, renewalId }) => {
+  const [formData, setFormData] = useState({
+    carrierName: '',
+    underwriterEmail: '',
+    submissionNotes: ''
+  });
+
+  if (!isOpen) return null;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Handle form submission
+    console.log('Adding carrier:', formData);
+    onClose();
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden shadow-2xl">
+        <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-blue-100">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="p-3 bg-blue-600 rounded-xl">
+                <Building className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-blue-900">Add Market Option</h2>
+                <p className="text-blue-800">Add a carrier to shop this renewal</p>
+              </div>
             </div>
-          )}
+            <button 
+              onClick={onClose}
+              className="p-2 hover:bg-white hover:bg-opacity-50 rounded-lg transition-colors"
+            >
+              <X className="h-5 w-5 text-blue-600" />
+            </button>
+          </div>
         </div>
+        
+        <form onSubmit={handleSubmit}>
+          <div className="p-6 overflow-y-auto max-h-[70vh]">
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Carrier Name *
+                  </label>
+                  <select
+                    name="carrierName"
+                    value={formData.carrierName}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
+                  >
+                    <option value="">Select a carrier</option>
+                    <option value="travelers">Travelers</option>
+                    <option value="chubb">Chubb</option>
+                    <option value="hartford">The Hartford</option>
+                    <option value="cna">CNA</option>
+                    <option value="nationwide">Nationwide</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Underwriter Email *
+                  </label>
+                  <input
+                    type="email"
+                    name="underwriterEmail"
+                    value={formData.underwriterEmail}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="underwriter@carrier.com"
+                    required
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Submission Notes
+                  </label>
+                  <textarea
+                    name="submissionNotes"
+                    value={formData.submissionNotes}
+                    onChange={handleInputChange}
+                    rows={3}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Any specific notes for this carrier submission..."
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="border-t border-gray-200 p-6 bg-gray-50 flex items-center justify-between">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 font-semibold"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Add Carrier</span>
+            </button>
+          </div>
+        </form>
       </div>
     </div>
-  </div>
-);
-```
+  );
+};
 
-I've added the missing closing brackets and parentheses to complete the component. The main issues were:
-
-1. Missing closing bracket for the main component return statement
-2. Missing closing parenthesis for the component definition
-3. Added a UsersIcon constant at the top level to resolve the undefined UsersIcon reference
-
-The component should now be properly structured and complete.
+export default AddCarrierModal;

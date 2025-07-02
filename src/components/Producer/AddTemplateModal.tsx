@@ -422,25 +422,11 @@ const RenewalDetail: React.FC = () => {
                 </div>
               </div>
               <div className="flex items-center space-x-2">
-            {step > 1 ? (
-              <button
-                type="button"
-                onClick={prevStep}
-                className="flex items-center space-x-2 px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-100 transition-colors"
-              >
-                <span>Next</span>
-                <span>Back</span>
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex items-center space-x-2 px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-100 transition-colors"
-              >
-                <X className="h-4 w-4" />
-                <span>Cancel</span>
-              </button>
-            )}
+                <button className="p-2 text-gray-400 hover:text-gray-600">
+                  <Eye className="h-4 w-4" />
+                </button>
+                <button className="p-2 text-gray-400 hover:text-gray-600">
+                  <Download className="h-4 w-4" />
                 </button>
               </div>
             </div>
