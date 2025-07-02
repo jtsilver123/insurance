@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { 
   RefreshCw, Search, Filter, Calendar, Clock, Mail, Phone, Video, Users, 
-  AlertTriangle, CheckCircle, Download, MoreVertical, ChevronDown, ChevronUp, 
-  Building, TrendingUp, TrendingDown, MessageSquare, Plus, X
+  AlertTriangle, CheckCircle, Download, MoreVertical, ChevronDown, ChevronUp,
+  Building, TrendingUp, TrendingDown, MessageSquare, Plus, X, Zap,
+  ArrowUpRight, ArrowDownRight, DollarSign, ShoppingBag
 } from 'lucide-react';
 import { mockRenewals } from '../../data/mockData';
 import { formatCurrency } from '../../utils/formatters';
@@ -49,6 +50,8 @@ const Renewals: React.FC = () => {
   const [showBulkActionMenu, setShowBulkActionMenu] = useState(false);
   const [showAddNoteModal, setShowAddNoteModal] = useState(false);
   const [newNote, setNewNote] = useState('');
+  const [showAiActionModal, setShowAiActionModal] = useState(false);
+  const [selectedAiAction, setSelectedAiAction] = useState<string | null>(null);
   
   // Mock renewal notes
   const [renewalNotes, setRenewalNotes] = useState<RenewalNote[]>([
@@ -317,6 +320,81 @@ const Renewals: React.FC = () => {
     return 'text-green-600 bg-green-50';
   };
   
+  // Get AI action recommendations
+  const getAiRecommendations = (renewal: any) => {
+    const recommendations = [];
+    
+    // Based on percentage change
+    if (renewal.changePercentage > 10) {
+      recommendations.push({
+        id: 'shop_new_carriers',
+        label: 'Shop with new carriers',
+        icon: ShoppingBag,
+        description: 'Premium increase is significant. Recommend shopping with alternative markets for competitive options.'
+      });
+    } else if (renewal.changePercentage > 5) {
+      recommendations.push({
+        id: 'renegotiate_pricing',
+        label: 'Renegotiate pricing',
+        icon: DollarSign,
+        description: 'Premium increase is moderate. Recommend negotiating with current carrier for better terms.'
+      });
+    }
+    
+    // Based on client tenure
+    if (renewal.clientTenure >= 3) {
+      recommendations.push({
+        id: 'increase_coverage',
+        label: 'Increase policy coverage',
+        icon: ArrowUpRight,
+        description: 'Long-term client with stable history. Consider recommending enhanced coverage options.'
+      });
+    }
+    
+    // Based on current coverage and business needs
+    if (renewal.coverageType.length < 3) {
+      recommendations.push({
+        id: 'increase_coverage',
+        label: 'Increase policy coverage',
+        icon: ArrowUpRight,
+        description: 'Client may benefit from additional coverage types based on their business profile.'
+      });
+    }
+    
+    // If premium is high relative to business size
+    if (renewal.currentPremium > 50000) {
+      recommendations.push({
+        id: 'decrease_coverage',
+        label: 'Decrease policy coverage',
+        icon: ArrowDownRight,
+        description: 'Premium is relatively high. Consider options to reduce costs through coverage adjustments.'
+      });
+    }
+    
+    // If no specific recommendations, add a default
+    if (recommendations.length === 0 || renewal.changePercentage < 0) {
+      recommendations.push({
+        id: 'no_changes',
+        label: 'No changes needed',
+        icon: CheckCircle,
+        description: 'Current terms are favorable. Recommend maintaining existing coverage and carrier.'
+      });
+    }
+    
+    // Return the top 2 recommendations
+    return recommendations.slice(0, 2);
+  };
+  
+  // Handle AI action click
+  const handleAiActionClick = (renewalId: string, actionId: string) => {
+    const renewal = mockRenewals.find(r => r.id === renewalId);
+    if (!renewal) return;
+    
+    setSelectedRenewal(renewalId);
+    setSelectedAiAction(actionId);
+    setShowAiActionModal(true);
+  };
+  
   // Render the detail panel
   const renderDetailPanel = () => {
     const renewal = getSelectedRenewal();
@@ -533,6 +611,140 @@ const Renewals: React.FC = () => {
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
               Add Note
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+  
+  // Render AI action modal
+  const renderAiActionModal = () => {
+    const renewal = getSelectedRenewal();
+    if (!renewal || !selectedAiAction) return null;
+    
+    const actionMap: Record<string, { title: string, description: string, steps: string[] }> = {
+      'shop_new_carriers': {
+        title: 'Shop with New Carriers',
+        description: `AI-powered market exploration for ${renewal.businessName}`,
+        steps: [
+          'Analyze current coverage details and limits',
+          'Identify 3-5 alternative carriers with appetite for this risk',
+          'Prepare submission package with updated exposure information',
+          'Submit to selected markets with negotiation points highlighted',
+          'Schedule follow-up timeline for quote collection'
+        ]
+      },
+      'renegotiate_pricing': {
+        title: 'Renegotiate Pricing with Current Carrier',
+        description: `AI-powered negotiation strategy for ${renewal.businessName}`,
+        steps: [
+          'Analyze premium history and loss ratio performance',
+          'Identify key negotiation leverage points',
+          'Prepare comparison with market averages for similar risks',
+          'Draft negotiation email with specific premium target',
+          'Schedule underwriter call with talking points'
+        ]
+      },
+      'increase_coverage': {
+        title: 'Increase Policy Coverage',
+        description: `AI-powered coverage enhancement for ${renewal.businessName}`,
+        steps: [
+          'Analyze current coverage gaps based on business profile',
+          'Identify 2-3 recommended coverage enhancements',
+          'Calculate premium impact for each recommendation',
+          'Prepare client-facing proposal with ROI analysis',
+          'Draft coverage increase request to carrier'
+        ]
+      },
+      'decrease_coverage': {
+        title: 'Decrease Policy Coverage',
+        description: `AI-powered cost optimization for ${renewal.businessName}`,
+        steps: [
+          'Analyze current coverage utilization and necessity',
+          'Identify potential areas for limit reduction or removal',
+          'Calculate premium savings for each option',
+          'Prepare risk/reward analysis for client review',
+          'Draft coverage adjustment request to carrier'
+        ]
+      },
+      'no_changes': {
+        title: 'Maintain Current Coverage',
+        description: `AI-powered renewal confirmation for ${renewal.businessName}`,
+        steps: [
+          'Verify all current coverage details remain appropriate',
+          'Prepare renewal confirmation documentation',
+          'Draft client communication explaining recommendation',
+          'Schedule brief renewal review call',
+          'Set calendar reminder for mid-term review'
+        ]
+      }
+    };
+    
+    const action = actionMap[selectedAiAction];
+    
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-xl max-w-2xl w-full p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center space-x-3">
+              <div className="p-3 bg-blue-600 rounded-xl">
+                <Zap className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-900">{action.title}</h3>
+                <p className="text-gray-600">{action.description}</p>
+              </div>
+            </div>
+            <button 
+              onClick={() => setShowAiActionModal(false)}
+              className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+          
+          <div className="mb-6">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+              <div className="flex items-start space-x-3">
+                <Zap className="h-5 w-5 text-blue-600 mt-0.5" />
+                <div>
+                  <h4 className="font-medium text-blue-900">AI-Powered Action Plan</h4>
+                  <p className="text-blue-800 text-sm mt-1">
+                    Our AI has analyzed this renewal and recommends the following action steps.
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <h4 className="font-medium text-gray-900 mb-3">Recommended Steps:</h4>
+            <div className="space-y-3">
+              {action.steps.map((step, index) => (
+                <div key={index} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center justify-center w-6 h-6 bg-blue-100 rounded-full text-blue-600 font-medium text-sm">
+                    {index + 1}
+                  </div>
+                  <p className="text-gray-800">{step}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          <div className="flex justify-end space-x-3">
+            <button
+              onClick={() => setShowAiActionModal(false)}
+              className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              Close
+            </button>
+            <button
+              onClick={() => {
+                toast.success('AI action plan applied to renewal');
+                setShowAiActionModal(false);
+              }}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Apply Action Plan
             </button>
           </div>
         </div>
@@ -774,6 +986,18 @@ const Renewals: React.FC = () => {
                 <th 
                   scope="col" 
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                  onClick={() => handleSort('currentPremium')}
+                >
+                  <div className="flex items-center space-x-1">
+                    <span>Annual Revenue</span>
+                    {sortConfig.key === 'revenue' && (
+                      sortConfig.direction === 'asc' ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
+                    )}
+                  </div>
+                </th>
+                <th 
+                  scope="col" 
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
                   onClick={() => handleSort('changePercentage')}
                 >
                   <div className="flex items-center space-x-1">
@@ -828,6 +1052,10 @@ const Renewals: React.FC = () => {
                     <div className="text-xs text-gray-500">Annual</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{formatCurrency(renewal.currentPremium * 10)}</div>
+                    <div className="text-xs text-gray-500">Client Revenue</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className={`px-3 py-2 rounded-lg ${getPercentageChangeColor(renewal.changePercentage)}`}>
                         <div className="flex items-center">
@@ -848,6 +1076,25 @@ const Renewals: React.FC = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium" onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center justify-end space-x-2">
+                      <div className="relative group">
+                        <button className="p-1 text-gray-400 hover:text-blue-600 rounded hover:bg-blue-50 group-hover:bg-blue-100">
+                          <Zap className="h-4 w-4" />
+                        </button>
+                        <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-10 border border-gray-200 hidden group-hover:block">
+                          <div className="py-1">
+                            {getAiRecommendations(renewal).map(action => (
+                              <button
+                                key={action.id}
+                                onClick={() => handleAiActionClick(renewal.id, action.id)}
+                                className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 w-full text-left"
+                              >
+                                <action.icon className="h-4 w-4 text-blue-600" />
+                                <span>{action.label}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
                       <button className="p-1 text-gray-400 hover:text-blue-600 rounded hover:bg-blue-50">
                         <Mail className="h-4 w-4" />
                       </button>
@@ -918,6 +1165,9 @@ const Renewals: React.FC = () => {
       
       {/* Detail Panel */}
       {showDetailPanel && renderDetailPanel()}
+      
+      {/* AI Action Modal */}
+      {showAiActionModal && renderAiActionModal()}
       
       {/* Add Note Modal */}
       {showAddNoteModal && renderAddNoteModal()}
