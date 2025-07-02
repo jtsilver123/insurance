@@ -1,28 +1,6 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { 
-  Home, 
-  Users, 
-  BarChart3, 
-  Settings, 
-  Shield,
-  FileText,
-  Upload,
-  DollarSign,
-  LogOut,
-  Bell,
-  ChevronRight,
-  Menu,
-  X,
-  MessageSquare,
-  Zap,
-  Clock,
-  CheckCircle,
-  AlertTriangle,
-  Mail,
-  Phone,
-  Calendar
-} from 'lucide-react';
+import { Home, Users, BarChart3, Settings, Shield, Bell, Menu, X, MessageSquare, Mail, Phone, Calendar } from 'lucide-react';
 
 interface SidebarProps {
   role: 'producer';
@@ -34,13 +12,11 @@ const Sidebar: React.FC<SidebarProps> = ({ role }) => {
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [showNotifications, setShowNotifications] = React.useState(false);
   
-  const producerNavItems = [
+  const navItems = [
     { path: '/producer', icon: Home, label: "Today's View", badge: null },
     { path: '/producer/prospects', icon: Users, label: 'Prospects', badge: '3' },
     { path: '/producer/analytics', icon: BarChart3, label: 'Analytics', badge: null }
   ];
-
-  const navItems = producerNavItems;
 
   // Mock notifications data
   const notifications = [
@@ -221,7 +197,7 @@ const Sidebar: React.FC<SidebarProps> = ({ role }) => {
                 <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                   InsureTech
                 </h1>
-                <p className="text-xs text-gray-500 capitalize font-medium">Producer Portal</p>
+                <p className="text-xs text-gray-500 font-medium">Producer Portal</p>
               </div>
           </div>
         </div>

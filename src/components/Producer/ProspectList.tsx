@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Filter, Search, Eye, Mail, Calendar, MoreVertical, ExternalLink, FileText, PenTool, Send, DollarSign, Clock, CheckCircle, AlertTriangle, X, ChevronDown, ChevronRight, Download, Upload, MessageSquare, Phone, Settings, Archive, Star, StarOff, Target, TrendingUp, User, Building, Baseline as Timeline, Globe, UserCheck, Sparkles } from 'lucide-react';
+import { Filter, Search, MoreVertical, FileText, X, User, Building, Baseline as Timeline, Globe, UserCheck, Sparkles } from 'lucide-react';
 import { mockProspects } from '../../data/mockData';
 import ProspectProgressBar from '../Common/ProspectProgressBar';
-import ProspectTimeline from '../Common/ProspectTimeline';
 import { format } from 'date-fns';
+import toast from 'react-hot-toast';
 import NewProspectModal from './NewProspectModal';
+import ProspectTimeline from '../Common/ProspectTimeline';
 
 interface SlideOutPanel {
   isOpen: boolean;
@@ -88,8 +89,9 @@ const ProspectList: React.FC = () => {
 
   const handleOpenClientPortal = (prospect: any) => {
     // Copy portal link to clipboard
-    navigator.clipboard.writeText(prospect.portalLink);
-    toast.success('Client portal link copied to clipboard!');
+    navigator.clipboard.writeText(prospect.portalLink)
+      .then(() => toast.success('Client portal link copied to clipboard!'))
+      .catch(() => toast.error('Failed to copy link'));
   };
 
   const handleViewClientDetails = (prospectId: string) => {
@@ -698,7 +700,7 @@ const ProspectList: React.FC = () => {
                   
                   <button
                     onClick={() => handleOpenClientPortal(prospect)}
-                    className="flex-1 flex items-center justify-center space-x-2 px-4 py-3 text-sm border-2 border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all duration-300 font-medium"
+                    className="flex-1 flex items-center justify-center space-x-2 px-4 py-3 text-sm border-2 border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 font-medium"
                   >
                     <Globe className="h-4 w-4" />
                     <span>Copy Portal Link</span>
