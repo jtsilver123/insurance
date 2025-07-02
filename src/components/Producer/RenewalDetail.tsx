@@ -18,7 +18,6 @@ import {
   Clock,
   CheckCircle,
   AlertTriangle,
-  Shield,
   BarChart3,
   Download,
   Send,
