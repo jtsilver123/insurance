@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 
 interface SidebarProps {
-  role: 'producer' | 'smb';
+  role: 'producer';
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ role }) => {
@@ -40,14 +40,7 @@ const Sidebar: React.FC<SidebarProps> = ({ role }) => {
     { path: '/producer/analytics', icon: BarChart3, label: 'Analytics', badge: null }
   ];
 
-  const smbNavItems = [
-    { path: '/client', icon: Home, label: 'Dashboard', badge: null },
-    { path: '/client/documents', icon: Upload, label: 'Upload Documents', badge: '2' },
-    { path: '/client/application', icon: FileText, label: 'Complete Forms', badge: null },
-    { path: '/client/policy', icon: DollarSign, label: 'Review Policy', badge: null }
-  ];
-
-  const navItems = role === 'producer' ? producerNavItems : smbNavItems;
+  const navItems = producerNavItems;
 
   // Mock notifications data
   const notifications = [
@@ -228,7 +221,7 @@ const Sidebar: React.FC<SidebarProps> = ({ role }) => {
                 <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                   InsureTech
                 </h1>
-                <p className="text-xs text-gray-500 capitalize font-medium">{role} Portal</p>
+                <p className="text-xs text-gray-500 capitalize font-medium">Producer Portal</p>
               </div>
           </div>
         </div>

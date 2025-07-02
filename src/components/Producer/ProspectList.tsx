@@ -87,9 +87,9 @@ const ProspectList: React.FC = () => {
   };
 
   const handleOpenClientPortal = (prospect: any) => {
-    // Open client portal in a new tab/window
-    const clientPortalUrl = `/client?prospect=${prospect.id}&token=${btoa(prospect.portalLink)}`;
-    window.open(clientPortalUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+    // Copy portal link to clipboard
+    navigator.clipboard.writeText(prospect.portalLink);
+    toast.success('Client portal link copied to clipboard!');
   };
 
   const handleViewClientDetails = (prospectId: string) => {
@@ -701,7 +701,7 @@ const ProspectList: React.FC = () => {
                     className="flex-1 flex items-center justify-center space-x-2 px-4 py-3 text-sm border-2 border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all duration-300 font-medium"
                   >
                     <Globe className="h-4 w-4" />
-                    <span>Client Portal</span>
+                    <span>Copy Portal Link</span>
                   </button>
                 </div>
               </div>
