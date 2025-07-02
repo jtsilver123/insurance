@@ -814,30 +814,6 @@ const AddCarrierModal: React.FC<AddCarrierModalProps> = ({ isOpen, onClose, onSa
                           {formData.submissionRequirements.length > 0 ? (
                             formData.submissionRequirements.map(req => (
                               <span key={req} className="px-2 py-1 bg-purple-100 text-purple-800 rounded text-xs">
-                                {req}
-                              </span>
-                            ))
-                          ) : (
-                            <span className="text-gray-500">None selected</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                {formData.notes && (
-                  <div className="bg-white rounded-xl border border-gray-200 p-4">
-                    <h4 className="font-medium text-gray-900 mb-3">Notes</h4>
-                    <p className="text-sm text-gray-700">{formData.notes}</p>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-          
-          {/* Footer */}
-          <div className="border-t border-gray-200 p-6 bg-gray-50 flex items-center justify-between">            
             <div className="flex items-center space-x-3">
               {step > 1 && (
                 <button
@@ -848,6 +824,17 @@ const AddCarrierModal: React.FC<AddCarrierModalProps> = ({ isOpen, onClose, onSa
                   <ChevronLeft className="h-4 w-4" />
                   <span>Back</span>
                 </button>
+              )}
+              
+              {step === 1 && (
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex items-center space-x-2 px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-100 transition-colors"
+              >
+                <X className="h-4 w-4" />
+                <span>Cancel</span>
+              </button>
               )}
               
               {step === 1 && (
