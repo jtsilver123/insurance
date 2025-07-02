@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Modal open - prevent background scrolling */
+body.modal-open {
+  overflow: hidden;
+}
+
 /* Custom scrollbar styles */
 @layer utilities {
   .scrollbar-thin::-webkit-scrollbar {

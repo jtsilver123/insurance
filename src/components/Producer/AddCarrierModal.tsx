@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   X, Building, Mail, Phone, Globe, DollarSign, Target, Shield, FileText,
   ChevronRight, ChevronLeft, Save, CheckCircle, User, Users, Percent
@@ -13,6 +13,21 @@ interface AddCarrierModalProps {
 const AddCarrierModal: React.FC<AddCarrierModalProps> = ({ isOpen, onClose, onSave }) => {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Add/remove modal-open class to body when modal opens/closes
+  useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add('modal-open');
+    } else {
+      document.body.classList.remove('modal-open');
+    }
+    
+    // Cleanup function to ensure we remove the class when component unmounts
+    return () => {
+      document.body.classList.remove('modal-open');
+    };
+  }, [isOpen]);
+  
   const [formData, setFormData] = useState({
     name: '',
     code: '',

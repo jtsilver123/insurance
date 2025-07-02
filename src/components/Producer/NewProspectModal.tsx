@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { X, Globe, User, Mail, Phone, Building2, MapPin, Sparkles, Zap, CheckCircle, RefreshCw, Search, LocateIcon as LocationIcon, UsersIcon, Briefcase, Clock, Star, Facebook, Instagram, Linkedin, Save, Send } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -56,6 +56,21 @@ interface ExtractedData {
 const NewProspectModal: React.FC<NewProspectModalProps> = ({ isOpen, onClose, onSave }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isExtracting, setIsExtracting] = useState(false);
+  
+  // Add/remove modal-open class to body when modal opens/closes
+  useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add('modal-open');
+    } else {
+      document.body.classList.remove('modal-open');
+    }
+    
+    // Cleanup function to ensure we remove the class when component unmounts
+    return () => {
+      document.body.classList.remove('modal-open');
+    };
+  }, [isOpen]);
+  
   const [extractedData, setExtractedData] = useState<ExtractedData | null>(null);
   const [extractionStep, setExtractionStep] = useState<string>('');
   const { register, handleSubmit, formState: { errors }, setValue, watch, reset } = useForm<NewProspectForm>();
