@@ -22,8 +22,6 @@ import {
   BarChart3,
   Download,
   Send,
-  ArrowLeft, Building, User, Mail, Phone, Calendar, DollarSign, FileText,
-  MessageSquare, Activity, Shield, CheckCircle, Clock, AlertTriangle,
   Star, Eye, Download, Copy, ExternalLink, Settings, MoreVertical,
   Edit, Archive, Trash2, RefreshCw, TrendingUp, TrendingDown, BarChart2,
   PieChart, LineChart, Zap, Target, Award, Plus, X
