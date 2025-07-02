@@ -84,7 +84,7 @@ const Renewals: React.FC = () => {
     {
       id: '1',
       renewalId: '2',
-      content: 'Client mentioned they're expanding operations and may need additional coverage for new equipment.',
+      content: 'Client mentioned they\'re expanding operations and may need additional coverage for new equipment.',
       createdBy: 'John Doe',
       createdAt: new Date('2024-01-15')
     },
