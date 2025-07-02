@@ -1,35 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { 
-  RefreshCw, 
-  Search, 
-  Filter, 
-  Calendar, 
-  Clock, 
-  ArrowUpDown, 
-  Mail, 
-  Phone, 
-  Video, 
-  Users, 
-  AlertTriangle, 
-  CheckCircle, 
-  Download, 
-  MoreVertical, 
-  ChevronDown, 
-  ChevronUp, 
-  Building, 
-  DollarSign, 
-  TrendingUp, 
-  TrendingDown, 
-  FileText, 
-  MessageSquare, 
-  Star, 
-  Plus, 
-  Eye, 
-  Edit, 
-  Trash2, 
-  X, 
-  Send, 
-  ExternalLink
+  RefreshCw, Search, Filter, Calendar, Clock, Mail, Phone, Video, Users, 
+  AlertTriangle, CheckCircle, Download, MoreVertical, ChevronDown, ChevronUp, 
+  Building, TrendingUp, TrendingDown, MessageSquare, Plus, X
 } from 'lucide-react';
 import { mockRenewals } from '../../data/mockData';
 import { formatCurrency } from '../../utils/formatters';
@@ -37,7 +10,6 @@ import toast from 'react-hot-toast';
 
 interface RenewalFilters {
   status: string;
-  priority: string;
   assignedTo: string;
   timeframe: string;
   search: string;
@@ -59,7 +31,6 @@ interface RenewalNote {
 const Renewals: React.FC = () => {
   const [filters, setFilters] = useState<RenewalFilters>({
     status: 'all',
-    priority: 'all',
     assignedTo: 'all',
     timeframe: 'all',
     search: ''
@@ -109,10 +80,7 @@ const Renewals: React.FC = () => {
     return mockRenewals.filter(renewal => {
       // Apply status filter
       if (filters.status !== 'all' && renewal.status !== filters.status) return false;
-      
-      // Apply priority filter
-      if (filters.priority !== 'all' && renewal.priority !== filters.priority) return false;
-      
+            
       // Apply assigned to filter
       if (filters.assignedTo !== 'all' && renewal.assignedTo !== filters.assignedTo) return false;
       
@@ -330,6 +298,23 @@ const Renewals: React.FC = () => {
     if (days === 0) return 'Due today';
     if (days === 1) return 'Due tomorrow';
     return `${days} days`;
+  };
+  
+  // Get renewal date badge
+  const getRenewalDateBadge = (days: number) => {
+    if (days < 0) return <span className="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">Overdue</span>;
+    if (days <= 15) return <span className="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">Urgent</span>;
+    if (days <= 30) return <span className="px-2 py-1 text-xs font-medium rounded-full bg-orange-100 text-orange-800">Soon</span>;
+    if (days <= 60) return <span className="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">Upcoming</span>;
+    return null;
+  };
+  
+  // Get percentage change color
+  const getPercentageChangeColor = (percentage: number) => {
+    if (percentage > 10) return 'text-red-600 bg-red-50';
+    if (percentage > 5) return 'text-orange-600 bg-orange-50';
+    if (percentage > 0) return 'text-yellow-600 bg-yellow-50';
+    return 'text-green-600 bg-green-50';
   };
   
   // Render the detail panel
@@ -678,34 +663,6 @@ const Renewals: React.FC = () => {
               <option value="90days">Next 90 Days</option>
             </select>
           </div>
-          
-          <div className="flex items-center space-x-2">
-            <Users className="h-4 w-4 text-gray-500" />
-            <select
-              value={filters.assignedTo}
-              onChange={(e) => handleFilterChange('assignedTo', e.target.value)}
-              className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="all">All Agents</option>
-              <option value="John Doe">John Doe</option>
-              <option value="Sarah Johnson">Sarah Johnson</option>
-            </select>
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            <AlertTriangle className="h-4 w-4 text-gray-500" />
-            <select
-              value={filters.priority}
-              onChange={(e) => handleFilterChange('priority', e.target.value)}
-              className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="all">All Priorities</option>
-              <option value="urgent">Urgent</option>
-              <option value="high">High</option>
-              <option value="medium">Medium</option>
-              <option value="low">Low</option>
-            </select>
-          </div>
         </div>
       </div>
       
@@ -805,18 +762,6 @@ const Renewals: React.FC = () => {
                 <th 
                   scope="col" 
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                  onClick={() => handleSort('daysRemaining')}
-                >
-                  <div className="flex items-center space-x-1">
-                    <span>Days Remaining</span>
-                    {sortConfig.key === 'daysRemaining' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
-                    )}
-                  </div>
-                </th>
-                <th 
-                  scope="col" 
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
                   onClick={() => handleSort('currentPremium')}
                 >
                   <div className="flex items-center space-x-1">
@@ -834,42 +779,6 @@ const Renewals: React.FC = () => {
                   <div className="flex items-center space-x-1">
                     <span>Change</span>
                     {sortConfig.key === 'changePercentage' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
-                    )}
-                  </div>
-                </th>
-                <th 
-                  scope="col" 
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                  onClick={() => handleSort('priority')}
-                >
-                  <div className="flex items-center space-x-1">
-                    <span>Priority</span>
-                    {sortConfig.key === 'priority' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
-                    )}
-                  </div>
-                </th>
-                <th 
-                  scope="col" 
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                  onClick={() => handleSort('status')}
-                >
-                  <div className="flex items-center space-x-1">
-                    <span>Status</span>
-                    {sortConfig.key === 'status' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
-                    )}
-                  </div>
-                </th>
-                <th 
-                  scope="col" 
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                  onClick={() => handleSort('recommendedContactMethod')}
-                >
-                  <div className="flex items-center space-x-1">
-                    <span>Contact Method</span>
-                    {sortConfig.key === 'recommendedContactMethod' && (
                       sortConfig.direction === 'asc' ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
                     )}
                   </div>
@@ -897,7 +806,7 @@ const Renewals: React.FC = () => {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-10 w-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
-                        <Building className="h-5 w-5 text-white" />
+                        <span className="text-sm font-bold text-white">{renewal.businessName.charAt(0)}{renewal.clientName.split(' ')[1].charAt(0)}</span>
                       </div>
                       <div className="ml-4">
                         <div className="text-sm font-medium text-gray-900">{renewal.businessName}</div>
@@ -907,15 +816,12 @@ const Renewals: React.FC = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">{renewal.renewalDate.toLocaleDateString()}</div>
-                    <div className="text-xs text-gray-500">Expiration Date</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className={`text-sm font-medium ${getDaysRemainingColor(renewal.daysRemaining)}`}>
-                      {formatDaysRemaining(renewal.daysRemaining)}
+                    <div className="flex items-center space-x-1 mt-1">
+                      {getRenewalDateBadge(renewal.daysRemaining)}
+                      <span className={`text-xs ${getDaysRemainingColor(renewal.daysRemaining)}`}>
+                        {formatDaysRemaining(renewal.daysRemaining)}
+                      </span>
                     </div>
-                    {renewal.daysRemaining <= 15 && renewal.status !== 'bound' && (
-                      <div className="text-xs text-red-600 font-medium">Urgent action needed</div>
-                    )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">{formatCurrency(renewal.currentPremium)}</div>
@@ -923,33 +829,21 @@ const Renewals: React.FC = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      {renewal.changePercentage > 0 ? (
-                        <TrendingUp className="h-4 w-4 text-red-500 mr-1" />
-                      ) : (
-                        <TrendingDown className="h-4 w-4 text-green-500 mr-1" />
-                      )}
-                      <span className={`text-sm font-medium ${renewal.changePercentage > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                        {renewal.changePercentage > 0 ? '+' : ''}{renewal.changePercentage}%
-                      </span>
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      Est. {formatCurrency(renewal.estimatedRenewalPremium)}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getPriorityColor(renewal.priority)}`}>
-                      {renewal.priority.toUpperCase()}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(renewal.status)}`}>
-                      {renewal.status.replace('_', ' ').toUpperCase()}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center space-x-1">
-                      {getContactMethodIcon(renewal.recommendedContactMethod)}
-                      <span className="text-sm text-gray-900 capitalize">{renewal.recommendedContactMethod}</span>
+                      <div className={`px-3 py-2 rounded-lg ${getPercentageChangeColor(renewal.changePercentage)}`}>
+                        <div className="flex items-center">
+                          {renewal.changePercentage > 0 ? (
+                            <TrendingUp className="h-4 w-4 mr-1" />
+                          ) : (
+                            <TrendingDown className="h-4 w-4 mr-1" />
+                          )}
+                          <span className="text-sm font-medium">
+                            {renewal.changePercentage > 0 ? '+' : ''}{renewal.changePercentage}%
+                          </span>
+                        </div>
+                        <div className="text-xs mt-1">
+                          Est. {formatCurrency(renewal.estimatedRenewalPremium)}
+                        </div>
+                      </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium" onClick={(e) => e.stopPropagation()}>
