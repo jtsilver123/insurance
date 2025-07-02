@@ -22,7 +22,7 @@ import {
   Download,
   Send,
   Star, Eye, Copy, ExternalLink, Settings, MoreVertical,
-  Edit, Archive, Trash2, RefreshCw, TrendingUp, TrendingDown, BarChart2,
+  Edit, Archive, Trash2, RefreshCw, TrendingDown, BarChart2,
   PieChart, LineChart, Zap, Target, Award, Plus, X
 } from 'lucide-react';
 import { mockRenewals } from '../../data/mockData';
