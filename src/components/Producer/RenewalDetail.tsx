@@ -24,7 +24,9 @@ import {
   Send,
   Zap,
   Edit,
-  Copy
+  Copy,
+  Plus,
+  X
 } from 'lucide-react';
 import { mockRenewals } from '../../data/mockData';
 import { formatCurrency, formatDate } from '../../utils/formatters';
