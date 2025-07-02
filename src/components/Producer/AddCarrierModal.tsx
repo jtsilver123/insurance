@@ -1,21 +1,7 @@
 import React, { useState } from 'react';
 import { 
-  X, 
-  Building, 
-  Mail, 
-  Phone, 
-  Globe, 
-  DollarSign, 
-  Target, 
-  Shield, 
-  FileText,
-  ChevronRight,
-  ChevronLeft,
-  Save,
-  CheckCircle,
-  User,
-  Users,
-  Percent
+  X, Building, Mail, Phone, Globe, DollarSign, Target, Shield, FileText,
+  ChevronRight, ChevronLeft, Save, CheckCircle, User, Users, Percent
 } from 'lucide-react';
 
 interface AddCarrierModalProps {
@@ -243,7 +229,7 @@ const AddCarrierModal: React.FC<AddCarrierModalProps> = ({ isOpen, onClose, onSa
             ))}
           </div>
         </div>
-
+        
         {/* Form Content */}
         <form onSubmit={handleSubmit}>
           <div className="p-6 overflow-y-auto max-h-[60vh]">
@@ -852,7 +838,19 @@ const AddCarrierModal: React.FC<AddCarrierModalProps> = ({ isOpen, onClose, onSa
           
           {/* Footer */}
           <div className="border-t border-gray-200 p-6 bg-gray-50 flex items-center justify-between">            
-            <div>
+            <div className="flex items-center space-x-3">
+              {step > 1 && (
+                <button
+                  type="button"
+                  onClick={prevStep}
+                  className="flex items-center space-x-2 px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-100 transition-colors"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  <span>Back</span>
+                </button>
+              )}
+              
+              {step === 1 && (
               <button
                 type="button"
                 onClick={onClose}
@@ -861,7 +859,8 @@ const AddCarrierModal: React.FC<AddCarrierModalProps> = ({ isOpen, onClose, onSa
                 <X className="h-4 w-4" />
                 <span>Cancel</span>
               </button>
-            </div>
+              )}
+            </div>  
             
             <div className="flex items-center space-x-3">
               {step > 1 && (
