@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Filter, Search, MoreVertical, FileText, X, User, Building, Baseline as Timeline, Globe, UserCheck, Sparkles } from 'lucide-react';
+import { Filter, Search, MoreVertical, FileText, X, User, Building, Baseline as Timeline, Globe, UserCheck, Sparkles, StarOff, Upload, Eye, Download, Mail, Phone, MessageSquare, ExternalLink } from 'lucide-react';
 import { mockProspects } from '../../data/mockData';
 import ProspectProgressBar from '../Common/ProspectProgressBar';
 import { format } from 'date-fns';
