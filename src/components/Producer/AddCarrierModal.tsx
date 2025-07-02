@@ -839,17 +839,6 @@ const AddCarrierModal: React.FC<AddCarrierModalProps> = ({ isOpen, onClose, onSa
           {/* Footer */}
           <div className="border-t border-gray-200 p-6 bg-gray-50 flex items-center justify-between">            
             <div className="flex items-center space-x-3">
-              {step > 1 && (
-                <button
-                  type="button"
-                  onClick={prevStep}
-                  className="flex items-center space-x-2 px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-100 transition-colors"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                  <span>Back</span>
-                </button>
-              )}
-              
               {step === 1 && (
               <button
                 type="button"
@@ -863,7 +852,7 @@ const AddCarrierModal: React.FC<AddCarrierModalProps> = ({ isOpen, onClose, onSa
             </div>  
             
             <div className="flex items-center space-x-3">
-              {step > 1 && (
+              {step > 1 ? (
                 <button
                   type="button"
                   onClick={prevStep}
@@ -872,7 +861,7 @@ const AddCarrierModal: React.FC<AddCarrierModalProps> = ({ isOpen, onClose, onSa
                   <ChevronLeft className="h-4 w-4" />
                   <span>Back</span>
                 </button>
-              )}
+              ) : null}
               
               {step < 5 ? (
                 <button
