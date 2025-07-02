@@ -22,11 +22,11 @@ import {
   BarChart3,
   Download,
   Send,
-  Zap,
-  Edit,
-  Copy,
-  Plus,
-  X
+  ArrowLeft, Building, User, Mail, Phone, Calendar, DollarSign, FileText,
+  MessageSquare, Activity, Shield, CheckCircle, Clock, AlertTriangle,
+  Star, Eye, Download, Copy, ExternalLink, Settings, MoreVertical,
+  Edit, Archive, Trash2, RefreshCw, TrendingUp, TrendingDown, BarChart2,
+  PieChart, LineChart, Zap, Target, Award, Plus, X
 } from 'lucide-react';
 import { mockRenewals } from '../../data/mockData';
 import { formatCurrency, formatDate } from '../../utils/formatters';
