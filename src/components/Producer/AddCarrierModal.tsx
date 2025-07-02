@@ -177,7 +177,7 @@ const AddCarrierModal: React.FC<AddCarrierModalProps> = ({ isOpen, onClose, onSa
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl">
+      <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-y-auto">
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-white">
           <div className="flex items-center justify-between">
@@ -231,8 +231,8 @@ const AddCarrierModal: React.FC<AddCarrierModalProps> = ({ isOpen, onClose, onSa
         </div>
         
         {/* Form Content */}
-        <form onSubmit={handleSubmit}>
-          <div className="p-6 overflow-y-auto max-h-[60vh]">
+        <form onSubmit={handleSubmit} className="flex-1 flex flex-col">
+          <div className="p-6 flex-1 overflow-y-auto">
             {/* Step 1: Basic Information */}
             {step === 1 && (
               <div className="space-y-6">
