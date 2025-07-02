@@ -814,64 +814,30 @@ const AddCarrierModal: React.FC<AddCarrierModalProps> = ({ isOpen, onClose, onSa
                           {formData.submissionRequirements.length > 0 ? (
                             formData.submissionRequirements.map(req => (
                               <span key={req} className="px-2 py-1 bg-purple-100 text-purple-800 rounded text-xs">
-            <div className="flex items-center space-x-3">
-              {step > 1 && (
-                <button
-                  type="button"
-                  onClick={prevStep}
-                  className="flex items-center space-x-2 px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-100 transition-colors"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                  <span>Back</span>
-                </button>
-              )}
+            <div className="flex items-center justify-between">
+              <div>
+                {step > 1 ? (
+                  <button
+                    type="button"
+                    onClick={prevStep}
+                    className="flex items-center space-x-2 px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-100 transition-colors"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    <span>Back</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="flex items-center space-x-2 px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-100 transition-colors"
+                  >
+                    <X className="h-4 w-4" />
+                    <span>Cancel</span>
+                  </button>
+                )}
+              </div>
               
-              {step === 1 && (
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex items-center space-x-2 px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-100 transition-colors"
-              >
-                <X className="h-4 w-4" />
-                <span>Cancel</span>
-              </button>
-              )}
-              
-              {step === 1 && (
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex items-center space-x-2 px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-100 transition-colors"
-              >
-                <X className="h-4 w-4" />
-                <span>Cancel</span>
-              </button>
-              )}
-            </div>  
-            
-            <div className="flex items-center space-x-3">
-              {step > 1 ? (
-                <button
-                  type="button"
-                  onClick={prevStep}
-                  className="flex items-center space-x-2 px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-100 transition-colors"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                  <span>Back</span>
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="flex items-center space-x-2 px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-100 transition-colors"
-                >
-                  <X className="h-4 w-4" />
-                  <span>Cancel</span>
-                </button>
-              )}
-            </div>
-            
-            <div className="flex items-center space-x-3">
+              <div>
               {step < 5 ? (
                 <button
                   type="button"
@@ -900,6 +866,7 @@ const AddCarrierModal: React.FC<AddCarrierModalProps> = ({ isOpen, onClose, onSa
                   )}
                 </button>
               )}
+              </div>
             </div>
           </div>
         </form>
