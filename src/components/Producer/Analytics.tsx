@@ -330,8 +330,8 @@ const Analytics: React.FC = () => {
               <div>
                 <h4 className="font-medium text-yellow-900">Loss Factors</h4>
                 <ul className="mt-2 space-y-1 text-sm text-yellow-800">
-                  <li>• Significant premium increases (>15%)</li>
-                  <li>• Late renewal engagement (<30 days)</li>
+                  <li>• Significant premium increases (&gt;15%)</li>
+                  <li>• Late renewal engagement (&lt;30 days)</li>
                   <li>• Poor claims experience</li>
                   <li>• Limited carrier options</li>
                 </ul>
