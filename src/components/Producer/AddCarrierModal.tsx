@@ -14,7 +14,8 @@ import {
   Save,
   CheckCircle,
   User,
-  Users
+  Users,
+  Percent
 } from 'lucide-react';
 
 interface AddCarrierModalProps {
@@ -53,10 +54,23 @@ const AddCarrierModal: React.FC<AddCarrierModalProps> = ({ isOpen, onClose, onSa
       specialConsiderations: [] as string[]
     },
     coverageLines: [] as string[],
+    commissionRates: {} as Record<string, number>,
     submissionRequirements: [] as string[],
     preferredSubmissionMethod: 'email',
     notes: ''
   });
+
+  const coverageOptions = [
+    'General Liability',
+    'Professional Liability', 
+    'Cyber Liability',
+    'Commercial Property',
+    'Workers Compensation',
+    'Commercial Auto',
+    'Directors & Officers',
+    'Employment Practices',
+    'Umbrella/Excess'
+  ];
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -117,6 +131,38 @@ const AddCarrierModal: React.FC<AddCarrierModalProps> = ({ isOpen, onClose, onSa
     }
   };
 
+  const handleCoverageChange = (coverage: string, checked: boolean) => {
+    const currentCoverages = [...formData.coverageLines];
+    const currentCommissions = { ...formData.commissionRates };
+    
+    if (checked) {
+      currentCoverages.push(coverage);
+      currentCommissions[coverage] = 15; // Default commission rate
+    } else {
+      const index = currentCoverages.indexOf(coverage);
+      if (index > -1) {
+        currentCoverages.splice(index, 1);
+        delete currentCommissions[coverage];
+      }
+    }
+    
+    setFormData(prev => ({
+      ...prev,
+      coverageLines: currentCoverages,
+      commissionRates: currentCommissions
+    }));
+  };
+
+  const handleCommissionChange = (coverage: string, rate: number) => {
+    setFormData(prev => ({
+      ...prev,
+      commissionRates: {
+        ...prev.commissionRates,
+        [coverage]: rate
+      }
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -134,7 +180,7 @@ const AddCarrierModal: React.FC<AddCarrierModalProps> = ({ isOpen, onClose, onSa
   };
 
   const nextStep = () => {
-    setStep(prev => Math.min(prev + 1, 4));
+    setStep(prev => Math.min(prev + 1, 5));
   };
 
   const prevStep = () => {
@@ -155,7 +201,7 @@ const AddCarrierModal: React.FC<AddCarrierModalProps> = ({ isOpen, onClose, onSa
               </div>
               <div>
                 <h2 className="text-2xl font-bold">Add New Carrier</h2>
-                <p className="text-blue-100">Configure carrier details, contacts, and submission requirements</p>
+                <p className="text-blue-100">Configure carrier details, contacts, appetite, and commission rates</p>
               </div>
             </div>
             <button 
@@ -171,8 +217,9 @@ const AddCarrierModal: React.FC<AddCarrierModalProps> = ({ isOpen, onClose, onSa
             {[
               { num: 1, title: "Basic Info" },
               { num: 2, title: "Contacts" },
-              { num: 3, title: "Coverage" },
-              { num: 4, title: "Review" }
+              { num: 3, title: "Appetite" },
+              { num: 4, title: "Coverage" },
+              { num: 5, title: "Review" }
             ].map((s, i) => (
               <React.Fragment key={s.num}>
                 <div className="flex flex-col items-center">
@@ -187,7 +234,7 @@ const AddCarrierModal: React.FC<AddCarrierModalProps> = ({ isOpen, onClose, onSa
                   </div>
                   <span className="text-sm mt-2 text-blue-100">{s.title}</span>
                 </div>
-                {i < 3 && (
+                {i < 4 && (
                   <div className={`h-1 flex-1 mx-2 ${
                     step > i + 1 ? 'bg-white' : 'bg-blue-400'
                   }`} />
@@ -385,154 +432,184 @@ const AddCarrierModal: React.FC<AddCarrierModalProps> = ({ isOpen, onClose, onSa
                     </div>
                   </div>
                 </div>
+              </div>
+            )}
 
-                {/* Appetite Configuration */}
-                <div className="border-t border-gray-200 pt-6">
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">Appetite Configuration</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Maximum Policy Limit
-                      </label>
-                      <div className="relative">
-                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <input
-                          type="number"
-                          name="appetite.maxPolicyLimit"
-                          value={formData.appetite.maxPolicyLimit}
-                          onChange={handleChange}
-                          className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          placeholder="10000000"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Risk Tolerance
-                      </label>
-                      <select
-                        name="appetite.riskTolerance"
-                        value={formData.appetite.riskTolerance}
+            {/* Step 3: Appetite Configuration */}
+            {step === 3 && (
+              <div className="space-y-6">
+                <div className="flex items-center space-x-3 mb-6">
+                  <div className="p-2 bg-purple-100 rounded-lg">
+                    <Target className="h-5 w-5 text-purple-600" />
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-900">Appetite Configuration</h3>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Maximum Policy Limit
+                    </label>
+                    <div className="relative">
+                      <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <input
+                        type="number"
+                        name="appetite.maxPolicyLimit"
+                        value={formData.appetite.maxPolicyLimit}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      >
-                        <option value="conservative">Conservative</option>
-                        <option value="moderate">Moderate</option>
-                        <option value="aggressive">Aggressive</option>
-                      </select>
+                        className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="10000000"
+                      />
                     </div>
                   </div>
-                  
-                  <div className="mt-6">
+                  <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Premium Range
+                      Risk Tolerance
                     </label>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="relative">
-                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <input
-                          type="number"
-                          name="appetite.premiumRange.min"
-                          value={formData.appetite.premiumRange.min}
-                          onChange={handleChange}
-                          className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          placeholder="Minimum premium"
-                        />
-                      </div>
-                      <div className="relative">
-                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <input
-                          type="number"
-                          name="appetite.premiumRange.max"
-                          value={formData.appetite.premiumRange.max}
-                          onChange={handleChange}
-                          className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          placeholder="Maximum premium"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-6">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Preferred Industries
-                    </label>
-                    <div className="grid grid-cols-2 gap-3">
-                      {[
-                        'Technology', 'Manufacturing', 'Construction', 'Retail',
-                        'Professional Services', 'Healthcare', 'Financial Services', 'Real Estate'
-                      ].map(industry => (
-                        <label key={industry} className="flex items-center space-x-2">
-                          <input
-                            type="checkbox"
-                            checked={formData.appetite.preferredIndustries.includes(industry)}
-                            onChange={() => handleArrayChange('appetite.preferredIndustries', industry)}
-                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                          />
-                          <span className="text-sm text-gray-700">{industry}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  <div className="mt-6">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Geographic Restrictions
-                    </label>
-                    <div className="grid grid-cols-4 gap-3">
-                      {['CA', 'NY', 'TX', 'FL', 'IL', 'PA', 'OH', 'GA', 'All US States'].map(state => (
-                        <label key={state} className="flex items-center space-x-2">
-                          <input
-                            type="checkbox"
-                            checked={formData.appetite.geographicRestrictions.includes(state)}
-                            onChange={() => handleArrayChange('appetite.geographicRestrictions', state)}
-                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                          />
-                          <span className="text-sm text-gray-700">{state}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  <div className="mt-6">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Special Considerations
-                    </label>
-                    <textarea
-                      name="notes"
-                      value={formData.notes}
+                    <select
+                      name="appetite.riskTolerance"
+                      value={formData.appetite.riskTolerance}
                       onChange={handleChange}
-                      rows={3}
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Enter any special underwriting considerations, exclusions, or notes..."
-                    />
+                    >
+                      <option value="conservative">Conservative</option>
+                      <option value="moderate">Moderate</option>
+                      <option value="aggressive">Aggressive</option>
+                    </select>
                   </div>
+                </div>
+                
+                <div className="mt-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Premium Range
+                  </label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="relative">
+                      <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <input
+                        type="number"
+                        name="appetite.premiumRange.min"
+                        value={formData.appetite.premiumRange.min}
+                        onChange={handleChange}
+                        className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Minimum premium"
+                      />
+                    </div>
+                    <div className="relative">
+                      <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <input
+                        type="number"
+                        name="appetite.premiumRange.max"
+                        value={formData.appetite.premiumRange.max}
+                        onChange={handleChange}
+                        className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Maximum premium"
+                      />
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="mt-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Preferred Industries
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      'Technology', 'Manufacturing', 'Construction', 'Retail',
+                      'Professional Services', 'Healthcare', 'Financial Services', 'Real Estate'
+                    ].map(industry => (
+                      <label key={industry} className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          checked={formData.appetite.preferredIndustries.includes(industry)}
+                          onChange={() => handleArrayChange('appetite.preferredIndustries', industry)}
+                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="text-sm text-gray-700">{industry}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="mt-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Geographic Restrictions
+                  </label>
+                  <div className="grid grid-cols-4 gap-3">
+                    {['CA', 'NY', 'TX', 'FL', 'IL', 'PA', 'OH', 'GA', 'All US States'].map(state => (
+                      <label key={state} className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          checked={formData.appetite.geographicRestrictions.includes(state)}
+                          onChange={() => handleArrayChange('appetite.geographicRestrictions', state)}
+                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="text-sm text-gray-700">{state}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="mt-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Special Considerations
+                  </label>
+                  <textarea
+                    name="notes"
+                    value={formData.notes}
+                    onChange={handleChange}
+                    rows={3}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Enter any special underwriting considerations, exclusions, or notes..."
+                  />
                 </div>
               </div>
             )}
             
-            {/* Step 3: Coverage */}
-            {step === 3 && (
+            {/* Step 4: Coverage & Commission */}
+            {step === 4 && (
               <div className="space-y-6">
+                <div className="flex items-center space-x-3 mb-6">
+                  <div className="p-2 bg-green-100 rounded-lg">
+                    <Shield className="h-5 w-5 text-green-600" />
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-900">Coverage Lines & Commission Rates</h3>
+                </div>
+
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Coverage Lines
+                  <label className="block text-sm font-medium text-gray-700 mb-4">
+                    Coverage Lines & Commission Rates
                   </label>
-                  <div className="grid grid-cols-2 gap-3">
-                    {[
-                      'General Liability', 'Professional Liability', 'Cyber Liability',
-                      'Commercial Property', 'Workers Compensation', 'Commercial Auto',
-                      'Directors & Officers', 'Employment Practices', 'Umbrella/Excess'
-                    ].map(coverage => (
-                      <label key={coverage} className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          checked={formData.coverageLines.includes(coverage)}
-                          onChange={() => handleArrayChange('coverageLines', coverage)}
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                        />
-                        <span className="text-sm text-gray-700">{coverage}</span>
-                      </label>
+                  <div className="space-y-4">
+                    {coverageOptions.map(coverage => (
+                      <div key={coverage} className="flex items-center justify-between p-4 border border-gray-200 rounded-xl">
+                        <div className="flex items-center space-x-3">
+                          <input
+                            type="checkbox"
+                            checked={formData.coverageLines.includes(coverage)}
+                            onChange={(e) => handleCoverageChange(coverage, e.target.checked)}
+                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          />
+                          <span className="text-sm font-medium text-gray-700">{coverage}</span>
+                        </div>
+                        
+                        {formData.coverageLines.includes(coverage) && (
+                          <div className="flex items-center space-x-2">
+                            <Percent className="h-4 w-4 text-gray-400" />
+                            <input
+                              type="number"
+                              min="0"
+                              max="100"
+                              step="0.5"
+                              value={formData.commissionRates[coverage] || 15}
+                              onChange={(e) => handleCommissionChange(coverage, parseFloat(e.target.value))}
+                              className="w-20 px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                              placeholder="15"
+                            />
+                            <span className="text-sm text-gray-600">%</span>
+                          </div>
+                        )}
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -605,8 +682,8 @@ const AddCarrierModal: React.FC<AddCarrierModalProps> = ({ isOpen, onClose, onSa
               </div>
             )}
             
-            {/* Step 4: Review */}
-            {step === 4 && (
+            {/* Step 5: Review */}
+            {step === 5 && (
               <div className="space-y-6">
                 <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
                   <div className="flex items-start space-x-3">
@@ -716,24 +793,37 @@ const AddCarrierModal: React.FC<AddCarrierModalProps> = ({ isOpen, onClose, onSa
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="bg-white rounded-xl border border-gray-200 p-4">
-                    <h4 className="font-medium text-gray-900 mb-3">Coverage & Submission</h4>
+                    <h4 className="font-medium text-gray-900 mb-3">Coverage & Commission</h4>
                     <div className="space-y-2 text-sm">
                       <div>
-                        <span className="text-gray-600">Coverage Lines:</span>
-                        <div className="mt-1 flex flex-wrap gap-1">
+                        <span className="text-gray-600">Coverage Lines & Rates:</span>
+                        <div className="mt-1 space-y-1">
                           {formData.coverageLines.length > 0 ? (
                             formData.coverageLines.map(line => (
-                              <span key={line} className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">
-                                {line}
-                              </span>
+                              <div key={line} className="flex justify-between items-center">
+                                <span className="text-gray-900">{line}</span>
+                                <span className="font-medium text-green-600">
+                                  {formData.commissionRates[line] || 15}%
+                                </span>
+                              </div>
                             ))
                           ) : (
                             <span className="text-gray-500">None selected</span>
                           )}
                         </div>
                       </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Preferred Submission Method:</span>
+                        <span className="font-medium text-gray-900 capitalize">{formData.preferredSubmissionMethod}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-xl border border-gray-200 p-4">
+                    <h4 className="font-medium text-gray-900 mb-3">Submission Requirements</h4>
+                    <div className="space-y-2 text-sm">
                       <div>
-                        <span className="text-gray-600">Submission Requirements:</span>
+                        <span className="text-gray-600">Required Documents:</span>
                         <div className="mt-1 flex flex-wrap gap-1">
                           {formData.submissionRequirements.length > 0 ? (
                             formData.submissionRequirements.map(req => (
@@ -745,10 +835,6 @@ const AddCarrierModal: React.FC<AddCarrierModalProps> = ({ isOpen, onClose, onSa
                             <span className="text-gray-500">None selected</span>
                           )}
                         </div>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Preferred Submission Method:</span>
-                        <span className="font-medium text-gray-900 capitalize">{formData.preferredSubmissionMethod}</span>
                       </div>
                     </div>
                   </div>
@@ -786,7 +872,7 @@ const AddCarrierModal: React.FC<AddCarrierModalProps> = ({ isOpen, onClose, onSa
               </button>
             )}
             
-            {step < 4 ? (
+            {step < 5 ? (
               <button
                 type="button"
                 onClick={nextStep}
