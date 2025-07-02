@@ -1,31 +1,8 @@
 import React, { useState } from 'react';
 import { 
-  User, 
-  Bell, 
-  Shield, 
-  CreditCard, 
-  Users, 
-  Mail,
-  Phone,
-  Building,
-  Save,
-  Eye,
-  EyeOff,
-  Plus,
-  Trash2,
-  Edit,
-  FileText,
-  Settings as SettingsIcon,
-  Zap,
-  Search,
-  Filter,
-  Upload,
-  Download,
-  Copy,
-  X,
-  CheckCircle,
-  AlertTriangle,
-  Clock
+  User, Bell, Shield, CreditCard, Users, Mail, Phone, Building, Save, Eye, EyeOff, 
+  Plus, Trash2, Edit, FileText, Settings as SettingsIcon, Zap, Search, Filter, 
+  Upload, Download, Copy, X, CheckCircle, AlertTriangle, Clock
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import AddCarrierModal from './AddCarrierModal';
@@ -277,9 +254,7 @@ const Settings: React.FC = () => {
   ];
 
   const tabs = [
-    { id: 'profile', label: 'Profile', icon: User },
-    { id: 'notifications', label: 'Notifications', icon: Bell },
-    { id: 'security', label: 'Security', icon: Shield },
+    { id: 'profile', label: 'Profile Settings', icon: User },
     { id: 'carriers', label: 'Carrier Profiles', icon: Building },
     { id: 'documents', label: 'Document Templates', icon: FileText },
     { id: 'automations', label: 'Workflow Automations', icon: Zap },
@@ -380,41 +355,10 @@ const Settings: React.FC = () => {
           </div>
         </div>
       </div>
-    </div>
-  );
-
-  const renderNotificationsTab = () => (
-    <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Email Notifications</h3>
-        <div className="space-y-4">
-          {[
-            { id: 'new-prospect', label: 'New prospect created', description: 'Get notified when a new prospect is added' },
-            { id: 'quote-received', label: 'Quote received', description: 'Get notified when carriers send quotes' },
-            { id: 'document-uploaded', label: 'Document uploaded', description: 'Get notified when clients upload documents' },
-            { id: 'form-completed', label: 'Form completed', description: 'Get notified when clients complete forms' },
-            { id: 'policy-bound', label: 'Policy bound', description: 'Get notified when policies are bound' }
-          ].map((notification) => (
-            <div key={notification.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-              <div>
-                <p className="font-medium text-gray-900">{notification.label}</p>
-                <p className="text-sm text-gray-600">{notification.description}</p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" defaultChecked className="sr-only peer" />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-              </label>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderSecurityTab = () => (
-    <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Change Password</h3>
+      
+      {/* Security Settings - Moved from separate tab */}
+      <div className="border-t border-gray-200 pt-8">
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Security Settings</h3>
         <div className="space-y-4 max-w-md">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Current Password</label>
@@ -446,9 +390,34 @@ const Settings: React.FC = () => {
               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 focus:bg-white transition-colors"
             />
           </div>
-          <button className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 font-semibold">
+          <button className="bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition-colors font-semibold">
             Update Password
           </button>
+        </div>
+      </div>
+      
+      {/* Notification Settings - Moved from separate tab */}
+      <div>
+        <h3 className="text-lg font-medium text-gray-900 mb-4 border-t border-gray-200 pt-8">Notification Settings</h3>
+        <div className="space-y-4">
+          {[
+            { id: 'new-prospect', label: 'New prospect created', description: 'Get notified when a new prospect is added' },
+            { id: 'quote-received', label: 'Quote received', description: 'Get notified when carriers send quotes' },
+            { id: 'document-uploaded', label: 'Document uploaded', description: 'Get notified when clients upload documents' },
+            { id: 'form-completed', label: 'Form completed', description: 'Get notified when clients complete forms' },
+            { id: 'policy-bound', label: 'Policy bound', description: 'Get notified when policies are bound' }
+          ].map((notification) => (
+            <div key={notification.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+              <div>
+                <p className="font-medium text-gray-900">{notification.label}</p>
+                <p className="text-sm text-gray-600">{notification.description}</p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" defaultChecked className="sr-only peer" />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+              </label>
+            </div>
+          ))}
         </div>
       </div>
     </div>
@@ -861,8 +830,6 @@ const Settings: React.FC = () => {
         <div className="flex-1">
           <div className="bg-white rounded-2xl border border-gray-100 p-8 shadow-sm">
             {activeTab === 'profile' && renderProfileTab()}
-            {activeTab === 'notifications' && renderNotificationsTab()}
-            {activeTab === 'security' && renderSecurityTab()}
             {activeTab === 'carriers' && renderCarriersTab()}
             {activeTab === 'documents' && renderDocumentsTab()}
             {activeTab === 'automations' && renderAutomationsTab()}
@@ -870,7 +837,7 @@ const Settings: React.FC = () => {
             {activeTab === 'team' && renderTeamTab()}
 
             {/* Save Button */}
-            {(activeTab === 'profile' || activeTab === 'notifications' || activeTab === 'carriers' || activeTab === 'documents' || activeTab === 'automations') && (
+            {(activeTab === 'profile' || activeTab === 'carriers' || activeTab === 'documents' || activeTab === 'automations') && (
               <div className="mt-8 pt-6 border-t border-gray-200">
                 <button
                   onClick={handleSave}
