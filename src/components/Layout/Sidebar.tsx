@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Home, Users, BarChart3, Settings, Shield, Bell, Menu, X, MessageSquare, Mail, Phone, Calendar } from 'lucide-react';
+import { Home, Users, BarChart3, Settings, Shield, Bell, Menu, X, MessageSquare, Mail, Phone, Calendar, RefreshCw } from 'lucide-react';
 
 interface SidebarProps {
   role: 'producer';
@@ -15,6 +15,7 @@ const Sidebar: React.FC<SidebarProps> = ({ role }) => {
   const navItems = [
     { path: '/producer', icon: Home, label: "Today's View", badge: null },
     { path: '/producer/prospects', icon: Users, label: 'Prospects', badge: '3' },
+    { path: '/producer/renewals', icon: RefreshCw, label: 'Renewals', badge: '5' },
     { path: '/producer/analytics', icon: BarChart3, label: 'Analytics', badge: null }
   ];
 

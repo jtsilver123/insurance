@@ -24,6 +24,29 @@ export interface Prospect {
   renewalDate?: Date;
 }
 
+export interface Renewal {
+  id: string;
+  clientName: string;
+  businessName: string;
+  contactEmail: string;
+  contactPhone: string;
+  renewalDate: Date;
+  expirationDate: Date;
+  daysRemaining: number;
+  clientTenure: number;
+  currentPremium: number;
+  estimatedRenewalPremium: number;
+  changePercentage: number;
+  currentCarrier: string;
+  coverageType: string[];
+  status: 'pending' | 'in_progress' | 'quoted' | 'bound' | 'lost';
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  recommendedAction: string;
+  recommendedContactMethod: 'email' | 'call' | 'meeting' | 'video';
+  notes?: string;
+  lastContactDate?: Date;
+  assignedTo: string;
+}
 interface Document {
   id: string;
   prospectId: string;
