@@ -94,6 +94,8 @@ interface Quote {
     url: string;
     uploadedAt: Date;
   }[];
+  commissionRate?: number;
+  estimatedCommission?: number;
 }
 
 interface ComparisonCategory {
@@ -201,7 +203,9 @@ const QuoteTabContent: React.FC<QuoteTabContentProps> = ({ prospectId, prospectN
           url: '/documents/liberty-summary.pdf',
           uploadedAt: new Date('2024-01-22')
         }
-      ]
+      ],
+      commissionRate: 15,
+      estimatedCommission: 6750
     },
     {
       id: '2',
@@ -276,7 +280,9 @@ const QuoteTabContent: React.FC<QuoteTabContentProps> = ({ prospectId, prospectN
           url: '/documents/travelers-quote.pdf',
           uploadedAt: new Date('2024-01-23')
         }
-      ]
+      ],
+      commissionRate: 12,
+      estimatedCommission: 5820
     },
     {
       id: '3',
@@ -366,7 +372,9 @@ const QuoteTabContent: React.FC<QuoteTabContentProps> = ({ prospectId, prospectN
           url: '/documents/chubb-comparison.pdf',
           uploadedAt: new Date('2024-01-24')
         }
-      ]
+      ],
+      commissionRate: 14,
+      estimatedCommission: 7280
     }
   ];
 
@@ -656,6 +664,16 @@ const QuoteTabContent: React.FC<QuoteTabContentProps> = ({ prospectId, prospectN
                     <p className="text-sm text-gray-600">Annual Premium</p>
                     <p className="text-2xl font-bold text-gray-900">{formatCurrency(quote.annualPremium)}</p>
                     <p className="text-sm text-gray-600">{formatCurrency(quote.monthlyPremium)}/month</p>
+                    {quote.commissionRate && quote.estimatedCommission && (
+                      <div className="flex items-center space-x-2 mt-1">
+                        <span className="text-sm text-green-600 font-medium">
+                          {formatCurrency(quote.estimatedCommission)} commission
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          ({quote.commissionRate}%)
+                        </span>
+                      </div>
+                    )}
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Deductible</p>
@@ -942,6 +960,14 @@ const QuoteTabContent: React.FC<QuoteTabContentProps> = ({ prospectId, prospectN
                           </span>
                         )}
                       </div>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm font-medium text-green-600">
+                          {formatCurrency(quote.estimatedCommission || 0)}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          ({quote.commissionRate || 0}% commission)
+                        </span>
+                      </div>
                     </th>
                   ))}
                 </tr>
@@ -982,6 +1008,19 @@ const QuoteTabContent: React.FC<QuoteTabContentProps> = ({ prospectId, prospectN
                       {selectedQuoteData.map((quote) => (
                         <td key={quote.id} className="px-6 py-4 text-sm text-gray-900">
                           {formatCurrency(quote.deductible)}
+                        </td>
+                      ))}
+                    </tr>
+                    <tr className="bg-gray-50">
+                      <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                        Agency Commission
+                      </td>
+                      {selectedQuoteData.map((quote) => (
+                        <td key={quote.id} className="px-6 py-4 text-sm text-gray-900">
+                          <div className="flex items-center space-x-1">
+                            <p className="font-semibold text-green-600">{formatCurrency(quote.estimatedCommission || 0)}</p>
+                            <span className="text-xs text-gray-500">({quote.commissionRate || 0}%)</span>
+                          </div>
                         </td>
                       ))}
                     </tr>
@@ -1397,6 +1436,13 @@ const QuoteTabContent: React.FC<QuoteTabContentProps> = ({ prospectId, prospectN
                     <div className="flex justify-between">
                       <span className="text-gray-600">Effective Date:</span>
                       <span className="font-medium text-gray-900">{formatDate(quote.effectiveDate)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Agency Commission:</span>
+                      <div className="flex items-center space-x-1">
+                        <p className="font-semibold text-green-600">{formatCurrency(quote.estimatedCommission || 0)}</p>
+                        <span className="text-xs text-gray-500">({quote.commissionRate || 0}%)</span>
+                      </div>
                     </div>
                   </div>
                 </div>
