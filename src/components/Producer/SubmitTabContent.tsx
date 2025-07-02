@@ -773,13 +773,32 @@ Best regards,
             <p className="text-gray-600">Select carriers and submit with AI-generated email templates for {prospectName}</p>
           </div>
           
-          <button
-            onClick={handleAddNewCarrier}
-            className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-md hover:shadow-lg font-medium"
-          >
-            <BuildingAdd className="h-4 w-4" />
-            <span>Add Carrier</span>
-          </button>
+          <div className="relative">
+            <select
+              onChange={(e) => {
+                if (e.target.value) {
+                  // Handle carrier selection
+                  console.log(`Selected carrier: ${e.target.value}`);
+                  // Reset the select after selection
+                  e.target.value = '';
+                }
+              }}
+              className="appearance-none bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 pr-8 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-md hover:shadow-lg font-medium cursor-pointer"
+            >
+              <option value="">Add Carrier</option>
+              <option value="hartford">The Hartford</option>
+              <option value="nationwide">Nationwide</option>
+              <option value="cna">CNA</option>
+              <option value="zurich">Zurich</option>
+              <option value="hiscox">Hiscox</option>
+              <option value="other">Other Carrier...</option>
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-white">
+              <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+              </svg>
+            </div>
+          </div>
         </div>
 
         {/* Filters and Controls */}
