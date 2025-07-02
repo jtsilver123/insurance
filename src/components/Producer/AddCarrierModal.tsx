@@ -12,7 +12,9 @@ import {
   ChevronRight,
   ChevronLeft,
   Save,
-  CheckCircle
+  CheckCircle,
+  User,
+  Users
 } from 'lucide-react';
 
 interface AddCarrierModalProps {
@@ -29,11 +31,15 @@ const AddCarrierModal: React.FC<AddCarrierModalProps> = ({ isOpen, onClose, onSa
     code: '',
     status: 'active',
     rating: 'A',
-    contact: {
+    manager: {
       name: '',
       email: '',
-      phone: '',
-      underwritingEmail: ''
+      phone: ''
+    },
+    underwriter: {
+      name: '',
+      email: '',
+      phone: ''
     },
     appetite: {
       maxPolicyLimit: 10000000,
@@ -149,7 +155,7 @@ const AddCarrierModal: React.FC<AddCarrierModalProps> = ({ isOpen, onClose, onSa
               </div>
               <div>
                 <h2 className="text-2xl font-bold">Add New Carrier</h2>
-                <p className="text-blue-100">Configure carrier details, appetite, and submission requirements</p>
+                <p className="text-blue-100">Configure carrier details, contacts, and submission requirements</p>
               </div>
             </div>
             <button 
@@ -164,7 +170,7 @@ const AddCarrierModal: React.FC<AddCarrierModalProps> = ({ isOpen, onClose, onSa
           <div className="flex items-center justify-between mt-8 px-4">
             {[
               { num: 1, title: "Basic Info" },
-              { num: 2, title: "Appetite" },
+              { num: 2, title: "Contacts" },
               { num: 3, title: "Coverage" },
               { num: 4, title: "Review" }
             ].map((s, i) => (
@@ -260,196 +266,247 @@ const AddCarrierModal: React.FC<AddCarrierModalProps> = ({ isOpen, onClose, onSa
                     </select>
                   </div>
                 </div>
-                
+              </div>
+            )}
+            
+            {/* Step 2: Contact Information */}
+            {step === 2 && (
+              <div className="space-y-8">
+                {/* Manager Contact Information */}
                 <div className="border-t border-gray-200 pt-6">
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">Contact Information</h3>
+                  <div className="flex items-center space-x-3 mb-6">
+                    <div className="p-2 bg-blue-100 rounded-lg">
+                      <User className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <h3 className="text-lg font-medium text-gray-900">Manager Contact Information</h3>
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Contact Name
+                        Manager Name
                       </label>
                       <input
                         type="text"
-                        name="contact.name"
-                        value={formData.contact.name}
+                        name="manager.name"
+                        value={formData.manager.name}
                         onChange={handleChange}
                         className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Primary contact person"
+                        placeholder="Manager name"
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Contact Email
+                        Manager Email
                       </label>
                       <div className="relative">
                         <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                         <input
                           type="email"
-                          name="contact.email"
-                          value={formData.contact.email}
+                          name="manager.email"
+                          value={formData.manager.email}
                           onChange={handleChange}
                           className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          placeholder="contact@carrier.com"
+                          placeholder="manager@carrier.com"
                         />
                       </div>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Contact Phone
+                        Manager Phone
                       </label>
                       <div className="relative">
                         <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                         <input
                           type="tel"
-                          name="contact.phone"
-                          value={formData.contact.phone}
+                          name="manager.phone"
+                          value={formData.manager.phone}
                           onChange={handleChange}
                           className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           placeholder="(555) 123-4567"
                         />
                       </div>
                     </div>
+                  </div>
+                </div>
+
+                {/* Underwriter Contact Information */}
+                <div className="border-t border-gray-200 pt-6">
+                  <div className="flex items-center space-x-3 mb-6">
+                    <div className="p-2 bg-green-100 rounded-lg">
+                      <Users className="h-5 w-5 text-green-600" />
+                    </div>
+                    <h3 className="text-lg font-medium text-gray-900">Underwriter Contact Information</h3>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Underwriting Email
+                        Underwriter Name
+                      </label>
+                      <input
+                        type="text"
+                        name="underwriter.name"
+                        value={formData.underwriter.name}
+                        onChange={handleChange}
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Underwriter name"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Underwriter Email
                       </label>
                       <div className="relative">
                         <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                         <input
                           type="email"
-                          name="contact.underwritingEmail"
-                          value={formData.contact.underwritingEmail}
+                          name="underwriter.email"
+                          value={formData.underwriter.email}
                           onChange={handleChange}
                           className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           placeholder="underwriting@carrier.com"
                         />
                       </div>
                     </div>
-                  </div>
-                </div>
-              </div>
-            )}
-            
-            {/* Step 2: Appetite */}
-            {step === 2 && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Maximum Policy Limit
-                    </label>
-                    <div className="relative">
-                      <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <input
-                        type="number"
-                        name="appetite.maxPolicyLimit"
-                        value={formData.appetite.maxPolicyLimit}
-                        onChange={handleChange}
-                        className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="10000000"
-                      />
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Underwriter Phone
+                      </label>
+                      <div className="relative">
+                        <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <input
+                          type="tel"
+                          name="underwriter.phone"
+                          value={formData.underwriter.phone}
+                          onChange={handleChange}
+                          className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="(555) 123-4567"
+                        />
+                      </div>
                     </div>
                   </div>
-                  <div>
+                </div>
+
+                {/* Appetite Configuration */}
+                <div className="border-t border-gray-200 pt-6">
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">Appetite Configuration</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Maximum Policy Limit
+                      </label>
+                      <div className="relative">
+                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <input
+                          type="number"
+                          name="appetite.maxPolicyLimit"
+                          value={formData.appetite.maxPolicyLimit}
+                          onChange={handleChange}
+                          className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="10000000"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Risk Tolerance
+                      </label>
+                      <select
+                        name="appetite.riskTolerance"
+                        value={formData.appetite.riskTolerance}
+                        onChange={handleChange}
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="conservative">Conservative</option>
+                        <option value="moderate">Moderate</option>
+                        <option value="aggressive">Aggressive</option>
+                      </select>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-6">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Risk Tolerance
+                      Premium Range
                     </label>
-                    <select
-                      name="appetite.riskTolerance"
-                      value={formData.appetite.riskTolerance}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="relative">
+                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <input
+                          type="number"
+                          name="appetite.premiumRange.min"
+                          value={formData.appetite.premiumRange.min}
+                          onChange={handleChange}
+                          className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="Minimum premium"
+                        />
+                      </div>
+                      <div className="relative">
+                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <input
+                          type="number"
+                          name="appetite.premiumRange.max"
+                          value={formData.appetite.premiumRange.max}
+                          onChange={handleChange}
+                          className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="Maximum premium"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Preferred Industries
+                    </label>
+                    <div className="grid grid-cols-2 gap-3">
+                      {[
+                        'Technology', 'Manufacturing', 'Construction', 'Retail',
+                        'Professional Services', 'Healthcare', 'Financial Services', 'Real Estate'
+                      ].map(industry => (
+                        <label key={industry} className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            checked={formData.appetite.preferredIndustries.includes(industry)}
+                            onChange={() => handleArrayChange('appetite.preferredIndustries', industry)}
+                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          />
+                          <span className="text-sm text-gray-700">{industry}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div className="mt-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Geographic Restrictions
+                    </label>
+                    <div className="grid grid-cols-4 gap-3">
+                      {['CA', 'NY', 'TX', 'FL', 'IL', 'PA', 'OH', 'GA', 'All US States'].map(state => (
+                        <label key={state} className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            checked={formData.appetite.geographicRestrictions.includes(state)}
+                            onChange={() => handleArrayChange('appetite.geographicRestrictions', state)}
+                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          />
+                          <span className="text-sm text-gray-700">{state}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div className="mt-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Special Considerations
+                    </label>
+                    <textarea
+                      name="notes"
+                      value={formData.notes}
                       onChange={handleChange}
+                      rows={3}
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                      <option value="conservative">Conservative</option>
-                      <option value="moderate">Moderate</option>
-                      <option value="aggressive">Aggressive</option>
-                    </select>
+                      placeholder="Enter any special underwriting considerations, exclusions, or notes..."
+                    />
                   </div>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Premium Range
-                  </label>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="relative">
-                      <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <input
-                        type="number"
-                        name="appetite.premiumRange.min"
-                        value={formData.appetite.premiumRange.min}
-                        onChange={handleChange}
-                        className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Minimum premium"
-                      />
-                    </div>
-                    <div className="relative">
-                      <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <input
-                        type="number"
-                        name="appetite.premiumRange.max"
-                        value={formData.appetite.premiumRange.max}
-                        onChange={handleChange}
-                        className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Maximum premium"
-                      />
-                    </div>
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Preferred Industries
-                  </label>
-                  <div className="grid grid-cols-2 gap-3">
-                    {[
-                      'Technology', 'Manufacturing', 'Construction', 'Retail',
-                      'Professional Services', 'Healthcare', 'Financial Services', 'Real Estate'
-                    ].map(industry => (
-                      <label key={industry} className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          checked={formData.appetite.preferredIndustries.includes(industry)}
-                          onChange={() => handleArrayChange('appetite.preferredIndustries', industry)}
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                        />
-                        <span className="text-sm text-gray-700">{industry}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Geographic Restrictions
-                  </label>
-                  <div className="grid grid-cols-4 gap-3">
-                    {['CA', 'NY', 'TX', 'FL', 'IL', 'PA', 'OH', 'GA', 'All US States'].map(state => (
-                      <label key={state} className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          checked={formData.appetite.geographicRestrictions.includes(state)}
-                          onChange={() => handleArrayChange('appetite.geographicRestrictions', state)}
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                        />
-                        <span className="text-sm text-gray-700">{state}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Special Considerations
-                  </label>
-                  <textarea
-                    name="notes"
-                    value={formData.notes}
-                    onChange={handleChange}
-                    rows={3}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Enter any special underwriting considerations, exclusions, or notes..."
-                  />
                 </div>
               </div>
             )}
@@ -587,29 +644,41 @@ const AddCarrierModal: React.FC<AddCarrierModalProps> = ({ isOpen, onClose, onSa
                   </div>
                   
                   <div className="bg-white rounded-xl border border-gray-200 p-4">
-                    <h4 className="font-medium text-gray-900 mb-3">Contact Information</h4>
+                    <h4 className="font-medium text-gray-900 mb-3">Manager Contact</h4>
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Contact Name:</span>
-                        <span className="font-medium text-gray-900">{formData.contact.name || 'Not provided'}</span>
+                        <span className="text-gray-600">Name:</span>
+                        <span className="font-medium text-gray-900">{formData.manager.name || 'Not provided'}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Contact Email:</span>
-                        <span className="font-medium text-gray-900">{formData.contact.email || 'Not provided'}</span>
+                        <span className="text-gray-600">Email:</span>
+                        <span className="font-medium text-gray-900">{formData.manager.email || 'Not provided'}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Contact Phone:</span>
-                        <span className="font-medium text-gray-900">{formData.contact.phone || 'Not provided'}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Underwriting Email:</span>
-                        <span className="font-medium text-gray-900">{formData.contact.underwritingEmail || 'Not provided'}</span>
+                        <span className="text-gray-600">Phone:</span>
+                        <span className="font-medium text-gray-900">{formData.manager.phone || 'Not provided'}</span>
                       </div>
                     </div>
                   </div>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                  <div className="bg-white rounded-xl border border-gray-200 p-4">
+                    <h4 className="font-medium text-gray-900 mb-3">Underwriter Contact</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Name:</span>
+                        <span className="font-medium text-gray-900">{formData.underwriter.name || 'Not provided'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Email:</span>
+                        <span className="font-medium text-gray-900">{formData.underwriter.email || 'Not provided'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Phone:</span>
+                        <span className="font-medium text-gray-900">{formData.underwriter.phone || 'Not provided'}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
                   <div className="bg-white rounded-xl border border-gray-200 p-4">
                     <h4 className="font-medium text-gray-900 mb-3">Appetite</h4>
                     <div className="space-y-2 text-sm">
@@ -643,7 +712,9 @@ const AddCarrierModal: React.FC<AddCarrierModalProps> = ({ isOpen, onClose, onSa
                       </div>
                     </div>
                   </div>
-                  
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="bg-white rounded-xl border border-gray-200 p-4">
                     <h4 className="font-medium text-gray-900 mb-3">Coverage & Submission</h4>
                     <div className="space-y-2 text-sm">
